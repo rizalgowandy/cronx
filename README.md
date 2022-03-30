@@ -1,8 +1,8 @@
-[![Go Doc](https://pkg.go.dev/badge/github.com/rizalgowandy/library-template-go?status.svg)](https://pkg.go.dev/github.com/rizalgowandy/library-template-go?tab=doc)
-[![Release](https://img.shields.io/github/release/rizalgowandy/library-template-go.svg?style=flat-square)](https://github.com/rizalgowandy/library-template-go/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/rizalgowandy/library-template-go)](https://goreportcard.com/report/github.com/rizalgowandy/library-template-go)
-[![Build Status](https://github.com/rizalgowandy/library-template-go/workflows/Go/badge.svg?branch=main)](https://github.com/rizalgowandy/library-template-go/actions?query=branch%3Amain)
-[![Sourcegraph](https://sourcegraph.com/github.com/rizalgowandy/library-template-go/-/badge.svg)](https://sourcegraph.com/github.com/rizalgowandy/library-template-go?badge)
+[![Go Doc](https://pkg.go.dev/badge/github.com/rizalgowandy/cronx?status.svg)](https://pkg.go.dev/github.com/rizalgowandy/cronx?tab=doc)
+[![Release](https://img.shields.io/github/release/rizalgowandy/cronx.svg?style=flat-square)](https://github.com/rizalgowandy/cronx/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rizalgowandy/cronx)](https://goreportcard.com/report/github.com/rizalgowandy/cronx)
+[![Build Status](https://github.com/rizalgowandy/cronx/workflows/Go/badge.svg?branch=main)](https://github.com/rizalgowandy/cronx/actions?query=branch%3Amain)
+[![Sourcegraph](https://sourcegraph.com/github.com/rizalgowandy/cronx/-/badge.svg)](https://sourcegraph.com/github.com/rizalgowandy/cronx?badge)
 
 ![logo](https://socialify.git.ci/rizalgowandy/cronx/image?description=1&language=1&pattern=Floating%20Cogs&theme=Light)
 
