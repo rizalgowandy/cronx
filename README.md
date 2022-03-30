@@ -28,61 +28,61 @@ Create a _**main.go**_ file.
 package main
 
 import (
-  "context"
+	"context"
 
-  "github.com/labstack/echo/v4"
-  "github.com/labstack/echo/v4/middleware"
-  "github.com/rizalgowandy/cronx"
-  "github.com/rs/zerolog"
-  "github.com/rs/zerolog/log"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/rizalgowandy/cronx"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // In order to create a job you need to create a struct that has Run() method.
 type sendEmail struct{}
 
 func (s sendEmail) Run(ctx context.Context) error {
-  log.WithLevel(zerolog.InfoLevel).
-    Str("job", "sendEmail").
-    Msg("every 5 seconds send reminder emails")
-  return nil
+	log.WithLevel(zerolog.InfoLevel).
+		Str("job", "sendEmail").
+		Msg("every 5 seconds send reminder emails")
+	return nil
 }
 
 func main() {
-  // Create cron middleware.
-  // The order is important.
-  // The first one will be executed first.
-  cronMiddleware := cronx.Chain(
-    interceptor.Recover(),
-    interceptor.Logger(),
-    interceptor.DefaultWorkerPool(),
-  )
+	// Create cron middleware.
+	// The order is important.
+	// The first one will be executed first.
+	cronMiddleware := cronx.Chain(
+		interceptor.Recover(),
+		interceptor.Logger(),
+		interceptor.DefaultWorkerPool(),
+	)
 
-  // Create a cron with middleware.
-  cronx.New(cronMiddleware)
-  defer cronx.Stop()
+	// Create a cron with middleware.
+	cronx.New(cronMiddleware)
+	defer cronx.Stop()
 
-  // Register a new cron job.
-  // Struct name will become the name for the current job.
-  if err := cronx.Schedule("@every 5s", sendEmail{}); err != nil {
-    // create log and send alert we fail to register job.
-    log.WithLevel(zerolog.ErrorLevel).
-      Err(err).
-      Msg("register sendEmail must success")
-  }
+	// Register a new cron job.
+	// Struct name will become the name for the current job.
+	if err := cronx.Schedule("@every 5s", sendEmail{}); err != nil {
+		// create log and send alert we fail to register job.
+		log.WithLevel(zerolog.ErrorLevel).
+			Err(err).
+			Msg("register sendEmail must success")
+	}
 
-  // Start server.
-  server, err := cronx.NewServer(":9001")
-  if err != nil {
-    log.WithLevel(zerolog.FatalLevel).
-      Err(err).
-      Msg("new server creation must success")
-    return
-  }
-  if err := server.ListenAndServe(); err != nil {
-    log.WithLevel(zerolog.FatalLevel).
-      Err(err).
-      Msg("server listen and server must success")
-  }
+	// Start server.
+	server, err := cronx.NewServer(":9001")
+	if err != nil {
+		log.WithLevel(zerolog.FatalLevel).
+			Err(err).
+			Msg("new server creation must success")
+		return
+	}
+	if err := server.ListenAndServe(); err != nil {
+		log.WithLevel(zerolog.FatalLevel).
+			Err(err).
+			Msg("server listen and server must success")
+	}
 }
 ```
 
@@ -130,17 +130,21 @@ down because of panic by adding middlewares. The idea of a middleware is to be d
 ### Adding Interceptor / Middleware
 
 ```go
-// Create cron middleware.
-// The order is important.
-// The first one will be executed first.
-middleware := cronx.Chain(
-interceptor.RequestID, // Inject request id to context.
-interceptor.Recover(), // Auto recover from panic.
-interceptor.Logger(),            // Log start and finish process.
-interceptor.DefaultWorkerPool(), // Limit concurrent running job.
-)
+package main
 
-cronx.New(middleware)
+func main() {
+	// Create cron middleware.
+	// The order is important.
+	// The first one will be executed first.
+	middleware := cronx.Chain(
+		interceptor.RequestID,           // Inject request id to context.
+		interceptor.Recover(),           // Auto recover from panic.
+		interceptor.Logger(),            // Log start and finish process.
+		interceptor.DefaultWorkerPool(), // Limit concurrent running job.
+	)
+
+	cronx.New(middleware)
+}
 ```
 
 Check all available interceptors [here](interceptor).
@@ -148,13 +152,15 @@ Check all available interceptors [here](interceptor).
 ### Custom Interceptor / Middleware
 
 ```go
+package main
+
 // Sleep is a middleware that sleep a few second after job has been executed.
 func Sleep() cronx.Interceptor {
-return func (ctx context.Context, job *cronx.Job, handler cronx.Handler) error {
-err := handler(ctx, job)
-time.Sleep(10 * time.Second)
-return err
-}
+	return func(ctx context.Context, job *cronx.Job, handler cronx.Handler) error {
+		err := handler(ctx, job)
+		time.Sleep(10 * time.Second)
+		return err
+	}
 }
 ```
 
@@ -163,18 +169,22 @@ For more example check [here](interceptor).
 ## Custom Configuration
 
 ```go
-// Create a cron with custom config.
-cronx.Custom(cronx.Config{
-Address:  ":8998", // Determine the built-in HTTP server port.
-Location: func () *time.Location { // Change timezone to Jakarta.
-jakarta, err := time.LoadLocation("Asia/Jakarta")
-if err != nil {
-secondsEastOfUTC := int((7 * time.Hour).Seconds())
-jakarta = time.FixedZone("WIB", secondsEastOfUTC)
+package main
+
+func main() {
+	// Create a cron with custom config.
+	cronx.Custom(cronx.Config{
+		Address: ":8998", // Determine the built-in HTTP server port.
+		Location: func() *time.Location { // Change timezone to Jakarta.
+			jakarta, err := time.LoadLocation("Asia/Jakarta")
+			if err != nil {
+				secondsEastOfUTC := int((7 * time.Hour).Seconds())
+				jakarta = time.FixedZone("WIB", secondsEastOfUTC)
+			}
+			return jakarta
+		}(),
+	})
 }
-return jakarta
-}(),
-})
 ```
 
 ## Schedule Specification Format
@@ -257,6 +267,8 @@ Go to [here](interceptor) to see the available interceptors.
 Yes, you can. This library is very modular.
 
 ```go
+package main
+
 // Since we want to create custom HTTP server.
 // Do not forget to shutdown the cron gracefully manually here.
 cronx.New()
@@ -270,9 +282,9 @@ res := cronx.GetStatusData()
 // An example using gin as the router.
 r := gin.Default()
 r.GET("/custom-path", func (c *gin.Context) {
-c.JSON(http.StatusOK, map[string]interface{}{
-"data": res,
-})
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"data": res,
+	})
 })
 
 // Start your own server and don't call cronx.NewServer().
@@ -284,6 +296,8 @@ r.Run()
 Yes, you can.
 
 ```go
+package main
+
 // GetStatusTemplate will return the built-in status page template.
 index, _ := page.GetStatusTemplate()
 
@@ -291,8 +305,8 @@ index, _ := page.GetStatusTemplate()
 e := echo.New()
 index, _ := page.GetStatusTemplate()
 e.GET("jobs", func (context echo.Context) error {
-// Serve the template to the writer and pass the current status data.
-return index.Execute(context.Response().Writer, cronx.GetStatusData())
+	// Serve the template to the writer and pass the current status data.
+	return index.Execute(context.Response().Writer, cronx.GetStatusData())
 })
 ```
 
@@ -301,17 +315,23 @@ return index.Execute(context.Response().Writer, cronx.GetStatusData())
 Yes, you can. By default, the cron timezone will follow the server location timezone using `time.Local`. If you placed the server in the US, it will use the US timezone. If you placed the server in the SG, it will use the SG timezone.
 
 ```go
-// Create a custom config.
-cronx.Custom(cronx.Config{
-Location: func () *time.Location { // Change timezone to Jakarta.
-jakarta, err := time.LoadLocation("Asia/Jakarta")
-if err != nil {
-secondsEastOfUTC := int((7 * time.Hour).Seconds())
-jakarta = time.FixedZone("WIB", secondsEastOfUTC)
+package main
+
+package main
+
+func main() {
+	// Create a custom config.
+	cronx.Custom(cronx.Config{
+		Location: func() *time.Location { // Change timezone to Jakarta.
+			jakarta, err := time.LoadLocation("Asia/Jakarta")
+			if err != nil {
+				secondsEastOfUTC := int((7 * time.Hour).Seconds())
+				jakarta = time.FixedZone("WIB", secondsEastOfUTC)
+			}
+			return jakarta
+		}(),
+	})
 }
-return jakarta
-}(),
-})
 ```
 
 ### My job requires certain information like current wave number, how can I get this information?
@@ -319,18 +339,20 @@ return jakarta
 This kind of information is stored inside metadata, which stored automatically inside `context`.
 
 ```go
+package main
+
 type subscription struct{}
 
 func (subscription) Run(ctx context.Context) error {
-md, ok := cronx.GetJobMetadata(ctx)
-if !ok {
-return errors.New("cannot get job metadata")
-}
+	md, ok := cronx.GetJobMetadata(ctx)
+	if !ok {
+		return errors.New("cannot get job metadata")
+	}
 
-log.WithLevel(zerolog.InfoLevel).
-Str("job", "subscription").
-Interface("metadata", md).
-Msg("is running")
-return nil
+	log.WithLevel(zerolog.InfoLevel).
+		Str("job", "subscription").
+		Interface("metadata", md).
+		Msg("is running")
+	return nil
 }
 ```
