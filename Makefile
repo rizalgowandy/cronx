@@ -16,8 +16,8 @@ test: # run all tests.
 	@./scripts/test.sh
 
 .PHONY: build
-build: # ensure all binary can be build. // TODO: replace me
-	@go build -o bin/library-go && rm bin/library-go
+build: # ensure all binary can be build.
+	@go build -o bin/go_build_cronx && rm bin/go_build_cronx
 
 .PHONY: generate
 generate: # generate all go generate command inside internal package.
