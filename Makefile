@@ -17,7 +17,8 @@ test: # run all tests.
 
 .PHONY: build
 build: # ensure all binary can be build.
-	@go build -o bin/go_build_cronx && rm bin/go_build_cronx
+	@go build -o bin/cronx && rm bin/cronx
+	@go build -o bin/example example/main.go && rm bin/example
 
 .PHONY: generate
 generate: # generate all go generate command inside internal package.
