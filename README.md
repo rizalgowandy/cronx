@@ -18,7 +18,7 @@ Run the binary. Then, browse to:
 - http://localhost:9001/jobs => see the html page.
 - http://localhost:9001/api/jobs => see the json response.
 
-![cronx](screenshot/5_status_page.png)
+![cronx](docs/screenshot/5_status_page.png)
 
 ## Available Status
 
