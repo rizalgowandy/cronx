@@ -1,6 +1,6 @@
 module github.com/rizalgowandy/cronx
 
-go 1.15
+go 1.14
 
 require (
 	github.com/labstack/echo/v4 v4.5.0
