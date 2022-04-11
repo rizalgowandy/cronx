@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/rizalgowandy/cronx"
 	"github.com/rizalgowandy/cronx/interceptor"
@@ -64,39 +63,26 @@ func (subscription) Run(ctx context.Context) error {
 }
 
 func main() {
-	// ===========================
-	// With Default Configuration
-	// ===========================
-	// Create a cron controller with default config.
-	// - running on port :8998
-	// - location is time.Local
-	// - without any middleware
-	// cronx.Default()
-	// defer cronx.Stop()
-
-	// ===========================
-	// With Custom Configuration
-	// ===========================
-	// Create cron middleware.
+	// Create middlewares.
 	// The order is important.
 	// The first one will be executed first.
-	cronMiddleware := cronx.Chain(
+	middlewares := cronx.Chain(
 		interceptor.Recover(),
 		interceptor.Logger(),
 		interceptor.DefaultWorkerPool(),
 	)
 
-	// Create a cron with middleware.
-	cronx.New(cronMiddleware)
-	defer cronx.Stop()
+	// Create the manager with middleware.
+	manager := cronx.NewManager(cronx.Config{}, middlewares)
+	defer manager.Stop()
 
 	// Register jobs.
-	RegisterJobs()
+	RegisterJobs(manager)
 
 	// ===========================
 	// Start Main Server
 	// ===========================
-	server, err := cronx.NewServer(":9001")
+	server, err := cronx.NewServer(manager, ":9001")
 	if err != nil {
 		log.WithLevel(zerolog.FatalLevel).
 			Err(err).
@@ -110,9 +96,9 @@ func main() {
 	}
 }
 
-func RegisterJobs() {
+func RegisterJobs(manager *cronx.Manager) {
 	// Struct name will become the name for the current job.
-	if err := cronx.Schedule("@every 5s", sendEmail{}); err != nil {
+	if err := manager.Schedule("@every 5s", sendEmail{}); err != nil {
 		// create log and send alert we fail to register job.
 		log.WithLevel(zerolog.ErrorLevel).
 			Err(err).
@@ -123,7 +109,7 @@ func RegisterJobs() {
 	// Duplication is okay.
 	for i := 0; i < 3; i++ {
 		spec := "@every " + converter.String(i+1) + "m"
-		if err := cronx.Schedule(spec, payBill{}); err != nil {
+		if err := manager.Schedule(spec, payBill{}); err != nil {
 			log.WithLevel(zerolog.ErrorLevel).
 				Err(err).
 				Msg("register payBill must success")
@@ -133,7 +119,7 @@ func RegisterJobs() {
 	// Create some jobs with broken spec.
 	for i := 0; i < 3; i++ {
 		spec := "broken spec " + converter.String(i+1)
-		if err := cronx.Schedule(spec, payBill{}); err != nil {
+		if err := manager.Schedule(spec, payBill{}); err != nil {
 			log.WithLevel(zerolog.ErrorLevel).
 				Err(err).
 				Msg("register payBill must success")
@@ -141,14 +127,14 @@ func RegisterJobs() {
 	}
 
 	// Create a job with run that will always be error.
-	if err := cronx.Schedule("@every 30s", alwaysError{}); err != nil {
+	if err := manager.Schedule("@every 30s", alwaysError{}); err != nil {
 		log.WithLevel(zerolog.ErrorLevel).
 			Err(err).
 			Msg("register alwaysError must success")
 	}
 
 	// Create a custom job with missing name.
-	if err := cronx.Schedule("0 */1 * * *", cronx.Func(func(context.Context) error {
+	if err := manager.Schedule("0 */1 * * *", cronx.Func(func(context.Context) error {
 		log.WithLevel(zerolog.InfoLevel).
 			Str("job", "nameless job").
 			Msg("every 1h will be run")
@@ -160,32 +146,25 @@ func RegisterJobs() {
 	}
 
 	// Create a job with v1 specification that includes seconds.
-	if err := cronx.Schedule("0 0 1 * * *", subscription{}); err != nil {
+	if err := manager.Schedule("0 0 1 * * *", subscription{}); err != nil {
 		log.WithLevel(zerolog.ErrorLevel).
 			Err(err).
 			Msg("register subscription must success")
 	}
 
 	// Create a job with multiple schedules
-	if err := cronx.Schedules("0 0 4 * * *#0 0 7 * * *#0 0 11 * * *", "#", subscription{}); err != nil {
+	if err := manager.Schedules("0 0 4 * * *#0 0 7 * * *#0 0 11 * * *", "#", subscription{}); err != nil {
 		log.WithLevel(zerolog.ErrorLevel).
 			Err(err).
 			Msg("register subscription must success")
 	}
 
-	const (
-		everyInterval    = 20
-		jobIDToBeRemoved = 2
-	)
-
-	// Create a job that run every 20 sec.
-	cronx.Every(everyInterval*time.Second, everyJob{})
-
 	// Remove a job.
-	cronx.Remove(jobIDToBeRemoved)
+	const jobIDToBeRemoved = 2
+	manager.Remove(jobIDToBeRemoved)
 
 	// Get all current registered job.
 	log.WithLevel(zerolog.InfoLevel).
-		Interface("entries", cronx.GetEntries()).
+		Interface("entries", manager.GetEntries()).
 		Msg("current jobs")
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rizalgowandy/cronx/page"
-	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
 )
 
 // SleepDuration defines the duration to sleep the server if the defined address is busy.
@@ -17,11 +16,7 @@ const SleepDuration = time.Second * 10
 // - /			=> current server status.
 // - /jobs		=> current jobs as frontend html.
 // - /api/jobs	=> current jobs as json.
-func NewServer(address string) (*http.Server, error) {
-	if commandController == nil || commandController.Commander == nil {
-		return nil, errorx.E("cronx has not been initialized")
-	}
-
+func NewServer(manager *Manager, address string) (*http.Server, error) {
 	// Create server.
 	e := echo.New()
 	e.HideBanner = true
@@ -31,7 +26,7 @@ func NewServer(address string) (*http.Server, error) {
 	e.Use(middleware.RemoveTrailingSlash())
 
 	// Create server controller.
-	ctrl := &ServerController{CommandController: commandController}
+	ctrl := &ServerController{Manager: manager}
 
 	// Register routes.
 	e.GET("/", ctrl.HealthCheck)
@@ -49,11 +44,7 @@ func NewServer(address string) (*http.Server, error) {
 // - /			=> current server status.
 // - /jobs		=> current jobs as frontend html.
 // - /api/jobs	=> current jobs as json.
-func NewSideCarServer(commandCtrl *CommandController) {
-	if commandCtrl.Location == nil {
-		commandCtrl.Location = defaultConfig.Location
-	}
-
+func NewSideCarServer(manager *Manager, address string) {
 	// Create server.
 	e := echo.New()
 	e.HideBanner = true
@@ -63,7 +54,7 @@ func NewSideCarServer(commandCtrl *CommandController) {
 	e.Use(middleware.RemoveTrailingSlash())
 
 	// Create server controller.
-	ctrl := &ServerController{CommandController: commandCtrl}
+	ctrl := &ServerController{Manager: manager}
 
 	// Register routes.
 	e.GET("/", ctrl.HealthCheck)
@@ -75,7 +66,7 @@ func NewSideCarServer(commandCtrl *CommandController) {
 	// If the current address is busy,
 	// sleep then try again until the address has become available.
 	for {
-		if err := e.Start(commandCtrl.Address); err != nil {
+		if err := e.Start(address); err != nil {
 			time.Sleep(SleepDuration)
 		}
 	}
@@ -83,22 +74,27 @@ func NewSideCarServer(commandCtrl *CommandController) {
 
 // ServerController is http server controller.
 type ServerController struct {
-	// CommandController controls all the underlying job.
-	CommandController *CommandController
+	// Manager controls all the underlying job.
+	Manager *Manager
 }
 
 // HealthCheck returns server status.
 func (c *ServerController) HealthCheck(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, c.CommandController.Info())
+	return ctx.JSON(http.StatusOK, c.Manager.GetInfo())
 }
 
 // Jobs return job status as frontend template.
 func (c *ServerController) Jobs(ctx echo.Context) error {
-	index, _ := page.GetStatusTemplate()
-	return index.Execute(ctx.Response().Writer, c.CommandController.StatusData())
+	index, err := page.GetStatusTemplate()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return index.Execute(ctx.Response().Writer, c.Manager.GetStatusData())
 }
 
 // APIJobs returns job status as json.
 func (c *ServerController) APIJobs(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, c.CommandController.StatusJSON())
+	return ctx.JSON(http.StatusOK, c.Manager.GetStatusJSON())
 }

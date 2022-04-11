@@ -138,6 +138,9 @@ issues:
     - path: api
       linters:
         - dupl
+    - path: example
+      linters:
+        - unparam
 
     # https://github.com/go-critic/go-critic/issues/926
     - linters:

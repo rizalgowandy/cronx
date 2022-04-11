@@ -12,7 +12,7 @@ import (
 
 func TestServerController_APIJobs(t *testing.T) {
 	type fields struct {
-		CommandController *CommandController
+		Manager *Manager
 	}
 	tests := []struct {
 		name    string
@@ -25,7 +25,7 @@ func TestServerController_APIJobs(t *testing.T) {
 			name:   "Success",
 			target: "/api/jobs",
 			fields: fields{
-				CommandController: &CommandController{
+				Manager: &Manager{
 					CreatedTime: time.Now(),
 					Location:    time.Local,
 				},
@@ -42,7 +42,7 @@ func TestServerController_APIJobs(t *testing.T) {
 			c := e.NewContext(req, rec)
 
 			ctrl := &ServerController{
-				CommandController: tt.fields.CommandController,
+				Manager: tt.fields.Manager,
 			}
 			if assert.NoError(t, ctrl.APIJobs(c)) {
 				assert.Equal(t, tt.expect, rec.Code)
@@ -53,7 +53,7 @@ func TestServerController_APIJobs(t *testing.T) {
 
 func TestServerController_HealthCheck(t *testing.T) {
 	type fields struct {
-		CommandController *CommandController
+		Manager *Manager
 	}
 	tests := []struct {
 		name    string
@@ -66,7 +66,7 @@ func TestServerController_HealthCheck(t *testing.T) {
 			name:   "Success",
 			target: "/",
 			fields: fields{
-				CommandController: &CommandController{
+				Manager: &Manager{
 					CreatedTime: time.Now(),
 					Location:    time.Local,
 				},
@@ -83,7 +83,7 @@ func TestServerController_HealthCheck(t *testing.T) {
 			c := e.NewContext(req, rec)
 
 			ctrl := &ServerController{
-				CommandController: tt.fields.CommandController,
+				Manager: tt.fields.Manager,
 			}
 			if assert.NoError(t, ctrl.HealthCheck(c)) {
 				assert.Equal(t, tt.expect, rec.Code)
@@ -94,7 +94,7 @@ func TestServerController_HealthCheck(t *testing.T) {
 
 func TestServerController_Jobs(t *testing.T) {
 	type fields struct {
-		CommandController *CommandController
+		Manager *Manager
 	}
 	tests := []struct {
 		name    string
@@ -107,7 +107,7 @@ func TestServerController_Jobs(t *testing.T) {
 			name:   "Success",
 			target: "/jobs",
 			fields: fields{
-				CommandController: &CommandController{
+				Manager: &Manager{
 					CreatedTime: time.Now(),
 					Location:    time.Local,
 				},
@@ -124,7 +124,7 @@ func TestServerController_Jobs(t *testing.T) {
 			c := e.NewContext(req, rec)
 
 			ctrl := &ServerController{
-				CommandController: tt.fields.CommandController,
+				Manager: tt.fields.Manager,
 			}
 			if assert.NoError(t, ctrl.Jobs(c)) {
 				assert.Equal(t, tt.expect, rec.Code)

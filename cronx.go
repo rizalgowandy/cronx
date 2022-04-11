@@ -1,7 +1,6 @@
 package cronx
 
 import (
-	"context"
 	"strings"
 	"time"
 
@@ -9,89 +8,66 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-// Config defines the config for the command controller.
+var defaultConfig = Config{Location: time.Local}
+
+// Config defines the config for the manager.
 type Config struct {
-	// Address determines the address will we serve the json and frontend status.
-	// Empty string meaning we won't serve the current job status.
-	Address string
 	// Location describes the timezone current cron is running.
 	Location *time.Location
 }
 
-var (
-	defaultConfig = Config{
-		Address:  ":8998",
-		Location: time.Local,
-	}
-
-	commandController *CommandController
-)
-
-// Default creates a cron with default config.
-// HTTP server is built in as side car by default.
-func Default(interceptors ...Interceptor) {
-	Custom(defaultConfig, interceptors...)
-}
-
-// New creates a cron without HTTP server built in.
-func New(interceptors ...Interceptor) {
-	Custom(Config{}, interceptors...)
-}
-
-// Custom creates a cron with custom config.
-// For advance user, allow custom modification.
-func Custom(config Config, interceptors ...Interceptor) {
-	// If there is invalid config use the default config instead.
+// NewManager create a command controller with a specific config.
+func NewManager(config Config, interceptors ...Interceptor) *Manager {
 	if config.Location == nil {
 		config.Location = defaultConfig.Location
 	}
 
-	// Create new command controller and start the underlying jobs.
-	commandController = NewCommandController(config, interceptors...)
+	// Support the v1 where the first parameter is second.
+	parser := cron.NewParser(
+		cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
+	)
 
-	// Check if client want to start a server to serve json and frontend.
-	if config.Address != "" {
-		go NewSideCarServer(commandController)
+	// Create the commander.
+	commander := cron.New(
+		cron.WithParser(parser),
+		cron.WithLocation(config.Location),
+	)
+	commander.Start()
+
+	// Create command controller.
+	return &Manager{
+		Commander:        commander,
+		Interceptor:      Chain(interceptors...),
+		Parser:           parser,
+		UnregisteredJobs: nil,
+		Location:         config.Location,
+		CreatedTime:      time.Now().In(config.Location),
 	}
+}
+
+// Manager controls all the underlying job.
+type Manager struct {
+	// Commander holds all the underlying cron jobs.
+	Commander *cron.Cron
+	// Interceptor holds middleware that will be executed before current job operation.
+	Interceptor Interceptor
+	// Parser is a custom parser to support v1 that contains second as first parameter.
+	Parser cron.Parser
+	// UnregisteredJobs describes the list of jobs that have been failed to be registered.
+	UnregisteredJobs []*Job
+	// Location describes the timezone current cron is running.
+	// By default the timezone will be the same timezone as the server.
+	Location *time.Location
+	// CreatedTime describes when the command controller created.
+	CreatedTime time.Time
 }
 
 // Schedule sets a job to run at specific time.
 // Example:
 //  @every 5m
 //  0 */10 * * * * => every 10m
-func Schedule(spec string, job JobItf) error {
-	return schedule(spec, "", job, 1, 1)
-}
-
-// ScheduleWithName sets a job to run at specific time with a Job name
-// Example:
-//  @every 5m
-//  0 */10 * * * * => every 10m
-func ScheduleWithName(name, spec string, job JobItf) error {
-	return schedule(spec, name, job, 1, 1)
-}
-
-func schedule(spec, jobName string, job JobItf, waveNumber, totalWave int64) error {
-	if commandController == nil || commandController.Commander == nil {
-		return errorx.New("cronx has not been initialized")
-	}
-
-	// Check if spec is correct.
-	schedule, err := commandController.Parser.Parse(spec)
-	if err != nil {
-		downJob := NewJob(job, jobName, waveNumber, totalWave)
-		downJob.Status = StatusCodeDown
-		downJob.Error = err.Error()
-		commandController.UnregisteredJobs = append(
-			commandController.UnregisteredJobs,
-			downJob,
-		)
-		return err
-	}
-
-	j := NewJob(job, jobName, waveNumber, totalWave)
-	j.EntryID = commandController.Commander.Schedule(schedule, j)
-	return nil
+func (m *Manager) Schedule(spec string, job JobItf) error {
+	return m.schedule(spec, job, 1, 1)
 }
 
 // Schedules sets a job to run multiple times at specific time.
@@ -102,7 +78,7 @@ func schedule(spec, jobName string, job JobItf, waveNumber, totalWave int64) err
 //	Spec		: "0 0 1 * * *#0 0 2 * * *#0 0 3 * * *
 //	Separator	: "#"
 //	This input schedules the job to run 3 times.
-func Schedules(spec, separator string, job JobItf) error {
+func (m *Manager) Schedules(spec, separator string, job JobItf) error {
 	if spec == "" {
 		return errorx.New("invalid specification")
 	}
@@ -111,97 +87,110 @@ func Schedules(spec, separator string, job JobItf) error {
 	}
 	schedules := strings.Split(spec, separator)
 	for k, v := range schedules {
-		if err := schedule(v, "", job, int64(k+1), int64(len(schedules))); err != nil {
+		if err := m.schedule(v, job, int64(k+1), int64(len(schedules))); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// Every executes the given job at a fixed interval.
-// The interval provided is the time between the job ending and the job being run again.
-// The time that the job takes to run is not included in the interval.
-// Minimal time is 1 sec.
-func Every(duration time.Duration, job JobItf) {
-	if commandController == nil || commandController.Commander == nil {
-		return
+func (m *Manager) schedule(spec string, job JobItf, waveNumber, totalWave int64) error {
+	// Check if spec is correct.
+	schedule, err := m.Parser.Parse(spec)
+	if err != nil {
+		downJob := NewJob(m, job, waveNumber, totalWave)
+		downJob.Status = StatusCodeDown
+		downJob.Error = err.Error()
+		m.UnregisteredJobs = append(m.UnregisteredJobs, downJob)
+		return err
 	}
 
-	j := NewJob(job, "", 1, 1)
-	j.EntryID = commandController.Commander.Schedule(cron.Every(duration), j)
+	j := NewJob(m, job, waveNumber, totalWave)
+	j.EntryID = m.Commander.Schedule(schedule, j)
+	return nil
+}
+
+// Start starts jobs from running at the next scheduled time.
+func (m *Manager) Start() {
+	m.Commander.Start()
 }
 
 // Stop stops active jobs from running at the next scheduled time.
-func Stop() {
-	if commandController == nil || commandController.Commander == nil {
-		return
-	}
-
-	commandController.Commander.Stop()
+func (m *Manager) Stop() {
+	m.Commander.Stop()
 }
 
 // GetEntries returns all the current registered jobs.
-func GetEntries() []cron.Entry {
-	if commandController == nil || commandController.Commander == nil {
-		return nil
-	}
-
-	return commandController.Commander.Entries()
+func (m *Manager) GetEntries() []cron.Entry {
+	return m.Commander.Entries()
 }
 
 // GetEntry returns a snapshot of the given entry, or nil if it couldn't be found.
-func GetEntry(id cron.EntryID) *cron.Entry {
-	if commandController == nil || commandController.Commander == nil {
-		return nil
-	}
-
-	entry := commandController.Commander.Entry(id)
+func (m *Manager) GetEntry(id cron.EntryID) *cron.Entry {
+	entry := m.Commander.Entry(id)
 	return &entry
 }
 
 // Remove removes a specific job from running.
-// Get EntryID from the list job entries cronx.GetEntries().
+// Get EntryID from the list job entries manager.GetEntries().
 // If job is in the middle of running, once the process is finished it will be removed.
-func Remove(id cron.EntryID) {
-	if commandController == nil || commandController.Commander == nil {
-		return
+func (m *Manager) Remove(id cron.EntryID) {
+	m.Commander.Remove(id)
+}
+
+// GetInfo returns command controller basic information.
+func (m *Manager) GetInfo() map[string]interface{} {
+	if m.Location == nil {
+		m.Location = defaultConfig.Location
 	}
 
-	commandController.Commander.Remove(id)
+	currentTime := time.Now().In(m.Location)
+
+	return map[string]interface{}{
+		"data": map[string]interface{}{
+			"location":     m.Location.String(),
+			"created_time": m.CreatedTime.String(),
+			"current_time": currentTime.String(),
+			"up_time":      currentTime.Sub(m.CreatedTime).String(),
+		},
+	}
 }
 
 // GetStatusData returns all jobs status.
-func GetStatusData() []StatusData {
-	if commandController == nil {
+func (m *Manager) GetStatusData() []StatusData {
+	if m.Commander == nil {
 		return nil
 	}
 
-	return commandController.StatusData()
-}
+	entries := m.Commander.Entries()
+	totalEntries := len(entries)
 
-// GetStatusJSON returns all jobs status as map[string]interface.
-func GetStatusJSON() map[string]interface{} {
-	if commandController == nil {
-		return nil
+	downs := m.UnregisteredJobs
+	totalDowns := len(downs)
+
+	totalJobs := totalEntries + totalDowns
+	listStatus := make([]StatusData, totalJobs)
+
+	// Register down jobs.
+	for k, v := range downs {
+		listStatus[k].Job = v
 	}
 
-	return commandController.StatusJSON()
-}
-
-// GetInfo returns current cron check basic information.
-func GetInfo() map[string]interface{} {
-	if commandController == nil {
-		return nil
+	// Register other jobs.
+	for k, v := range entries {
+		idx := totalDowns + k
+		listStatus[idx].ID = v.ID
+		listStatus[idx].Job = v.Job.(*Job)
+		listStatus[idx].Next = v.Next
+		listStatus[idx].Prev = v.Prev
 	}
 
-	return commandController.Info()
+	return listStatus
 }
 
-// Func is a type to allow callers to wrap a raw func.
-// Example:
-//	cronx.Schedule("@every 5m", cronx.Func(myFunc))
-type Func func(ctx context.Context) error
-
-func (r Func) Run(ctx context.Context) error {
-	return r(ctx)
+// StatusJSON returns all jobs status as map[string]interface.
+func (m *Manager) GetStatusJSON() map[string]interface{} {
+	return map[string]interface{}{
+		"data": m.GetStatusData(),
+	}
 }

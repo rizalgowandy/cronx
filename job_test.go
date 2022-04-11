@@ -39,8 +39,9 @@ func TestJob_Run(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			Default()
+			manager := NewManager(Config{})
 			j := &Job{
+				manager: manager,
 				Name:    tt.fields.Name,
 				Status:  tt.fields.Status,
 				Latency: tt.fields.Latency,
@@ -120,7 +121,6 @@ func TestJob_UpdateStatus(t *testing.T) {
 func TestNewJob(t *testing.T) {
 	type args struct {
 		job        JobItf
-		name       string
 		waveNumber int64
 		totalWave  int64
 	}
@@ -131,7 +131,6 @@ func TestNewJob(t *testing.T) {
 		{
 			name: "Success",
 			args: args{
-				name:       "Random Name",
 				job:        Func(func(ctx context.Context) error { return nil }),
 				waveNumber: 1,
 				totalWave:  1,
@@ -140,7 +139,8 @@ func TestNewJob(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewJob(tt.args.job, tt.args.name, tt.args.waveNumber, tt.args.totalWave)
+			manager := NewManager(Config{})
+			got := NewJob(manager, tt.args.job, tt.args.waveNumber, tt.args.totalWave)
 			t.Log(got)
 			assert.NotNil(t, got)
 		})
