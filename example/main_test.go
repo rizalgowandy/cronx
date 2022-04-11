@@ -149,8 +149,8 @@ func TestRegisterJobs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cronx.Default()
-			RegisterJobs()
+			manager := cronx.NewManager(cronx.Config{})
+			RegisterJobs(manager)
 		})
 	}
 }

@@ -14,6 +14,48 @@ type JobItf interface {
 	Run(ctx context.Context) error
 }
 
+// NewJob creates a new job with default status and name.
+func NewJob(manager *Manager, job JobItf, waveNumber, totalWave int64) *Job {
+	return &Job{
+		manager: manager,
+		JobMetadata: JobMetadata{
+			EntryID:    0,
+			Wave:       waveNumber,
+			TotalWave:  totalWave,
+			IsLastWave: waveNumber == totalWave,
+		},
+		Name:    GetJobName(job),
+		Status:  StatusCodeUp,
+		Latency: "",
+		Error:   "",
+		inner:   job,
+		status:  statusUp,
+		running: sync.Mutex{},
+	}
+}
+
+// GetJobName return the Job name by reflect the job
+func GetJobName(job JobItf) (name string) {
+	name = reflect.TypeOf(job).Name()
+	if name == "" {
+		name = reflect.TypeOf(job).Elem().Name()
+	}
+	if name == "" {
+		name = reflect.TypeOf(job).String()
+	}
+	if name == "Func" {
+		name = "(nameless)"
+	}
+	return
+}
+
+type JobMetadata struct {
+	EntryID    cron.EntryID `json:"entry_id"`
+	Wave       int64        `json:"wave"`
+	TotalWave  int64        `json:"total_wave"`
+	IsLastWave bool         `json:"is_last_wave"`
+}
+
 type Job struct {
 	JobMetadata
 
@@ -22,16 +64,10 @@ type Job struct {
 	Latency string     `json:"latency"`
 	Error   string     `json:"error"`
 
+	manager *Manager
 	inner   JobItf
 	status  uint32
 	running sync.Mutex
-}
-
-type JobMetadata struct {
-	EntryID    cron.EntryID `json:"entry_id"`
-	Wave       int64        `json:"wave"`
-	TotalWave  int64        `json:"total_wave"`
-	IsLastWave bool         `json:"is_last_wave"`
 }
 
 // UpdateStatus updates the current job status to the latest.
@@ -68,7 +104,7 @@ func (j *Job) Run() {
 	j.UpdateStatus()
 
 	// Run the job.
-	if err := commandController.Interceptor(ctx, j, func(ctx context.Context, job *Job) error {
+	if err := j.manager.Interceptor(ctx, j, func(ctx context.Context, job *Job) error {
 		return job.inner.Run(ctx)
 	}); err != nil {
 		j.Error = err.Error()
@@ -82,42 +118,4 @@ func (j *Job) Run() {
 
 	// Update job status after running.
 	j.UpdateStatus()
-}
-
-// jobNameFromJob return the Job name by reflect the job
-func jobNameFromJob(job JobItf) (name string) {
-	name = reflect.TypeOf(job).Name()
-	if name == "" {
-		name = reflect.TypeOf(job).Elem().Name()
-	}
-	if name == "" {
-		name = reflect.TypeOf(job).String()
-	}
-	if name == "Func" {
-		name = "(nameless)"
-	}
-	return
-}
-
-// NewJob creates a new job with default status and name.
-func NewJob(job JobItf, name string, waveNumber, totalWave int64) *Job {
-	if name == "" {
-		name = jobNameFromJob(job)
-	}
-
-	return &Job{
-		JobMetadata: JobMetadata{
-			EntryID:    0,
-			Wave:       waveNumber,
-			TotalWave:  totalWave,
-			IsLastWave: waveNumber == totalWave,
-		},
-		Name:    name,
-		Status:  StatusCodeUp,
-		Latency: "",
-		Error:   "",
-		inner:   job,
-		status:  statusUp,
-		running: sync.Mutex{},
-	}
 }
