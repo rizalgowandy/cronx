@@ -24,7 +24,7 @@ push:
 comment:
   if: is_pull_request
   deletePrevious: true
-  hideFooterLink: false
+  hideFooterLink: true
 report:
   if: is_default_branch
   datastores:
