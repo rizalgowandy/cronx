@@ -104,7 +104,7 @@ func (j *Job) Run() {
 	j.UpdateStatus()
 
 	// Run the job.
-	if err := j.manager.Interceptor(ctx, j, func(ctx context.Context, job *Job) error {
+	if err := j.manager.interceptor(ctx, j, func(ctx context.Context, job *Job) error {
 		return job.inner.Run(ctx)
 	}); err != nil {
 		j.Error = err.Error()

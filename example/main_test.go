@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/rizalgowandy/cronx"
+	"github.com/rizalgowandy/gdk/pkg/logx"
 )
 
 func Test_alwaysError_Run(t *testing.T) {
@@ -26,31 +27,6 @@ func Test_alwaysError_Run(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			a := alwaysError{}
 			if err := a.Run(tt.args.in); (err != nil) != tt.wantErr {
-				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func Test_everyJob_Run(t *testing.T) {
-	type args struct {
-		in0 context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Success",
-			args:    args{},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ev := everyJob{}
-			if err := ev.Run(tt.args.in0); (err != nil) != tt.wantErr {
 				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -149,8 +125,9 @@ func TestRegisterJobs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			manager := cronx.NewManager(cronx.Config{})
-			RegisterJobs(manager)
+			ctx := logx.NewContext()
+			manager := cronx.NewManager()
+			RegisterJobs(ctx, manager)
 		})
 	}
 }

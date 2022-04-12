@@ -39,7 +39,7 @@ func TestJob_Run(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			manager := NewManager(Config{})
+			manager := NewManager()
 			j := &Job{
 				manager: manager,
 				Name:    tt.fields.Name,
@@ -139,7 +139,7 @@ func TestNewJob(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			manager := NewManager(Config{})
+			manager := NewManager()
 			got := NewJob(manager, tt.args.job, tt.args.waveNumber, tt.args.totalWave)
 			t.Log(got)
 			assert.NotNil(t, got)

@@ -82,7 +82,7 @@ func main() {
 		interceptor.DefaultWorkerPool(), // Limit concurrent running job.
 	)
 
-	cronx.New(middleware)
+	cronx.New(cronx.WithInterceptor(middleware))
 }
 ```
 
@@ -104,26 +104,6 @@ func Sleep() cronx.Interceptor {
 ```
 
 For more example check [here](interceptor).
-
-## Custom Configuration
-
-```go
-package main
-
-func main() {
-	// Create a cron with custom config.
-	cronx.NewManager(cronx.Config{
-		Location: func() *time.Location { // Change timezone to Jakarta.
-			jakarta, err := time.LoadLocation("Asia/Jakarta")
-			if err != nil {
-				secondsEastOfUTC := int((7 * time.Hour).Seconds())
-				jakarta = time.FixedZone("WIB", secondsEastOfUTC)
-			}
-			return jakarta
-		}(),
-	})
-}
-```
 
 ## FAQ
 
@@ -157,26 +137,28 @@ Go to [here](interceptor) to see the available interceptors.
 
 ### Can I use my own router without starting the built-in router?
 
-Yes, you can. This library is very modular. 
+Yes, you can. This library is very modular.
 
 Here's an example of using [gin](https://github.com/gin-gonic/gin).
 
 ```go
 package main
 
-// Since we want to create custom HTTP server.
-// Do not forget to shutdown the cron gracefully manually here.
-manager := cronx.NewManager(cronx.Config{})
-defer manager.Stop()
+func main() {
+	// Since we want to create custom HTTP server.
+	// Do not forget to shutdown the cron gracefully manually here.
+	manager := cronx.NewManager()
+	defer manager.Stop()
 
-// An example using gin as the router.
-r := gin.Default()
-r.GET("/custom-path", func (c *gin.Context) {
-	c.JSON(http.StatusOK, manager.GetStatusJSON())
-})
+	// An example using gin as the router.
+	r := gin.Default()
+	r.GET("/custom-path", func(c *gin.Context) {
+		c.JSON(http.StatusOK, manager.GetStatusJSON())
+	})
 
-// Start your own server.
-r.Run()
+	// Start your own server.
+	r.Run()
+}
 ```
 
 ### Can I still get the built-in template if I use my own router?
@@ -186,21 +168,23 @@ Yes, you can.
 ```go
 package main
 
-// Since we want to create custom HTTP server.
-// Do not forget to shutdown the cron gracefully manually here.
-manager := cronx.NewManager(cronx.Config{})
-defer manager.Stop()
+func main() {
+	// Since we want to create custom HTTP server.
+	// Do not forget to shutdown the cron gracefully manually here.
+	manager := cronx.NewManager()
+	defer manager.Stop()
 
-// GetStatusTemplate will return the built-in status page template.
-index, _ := page.GetStatusTemplate()
+	// GetStatusTemplate will return the built-in status page template.
+	index, _ := page.GetStatusTemplate()
 
-// An example using echo as the router.
-e := echo.New()
-index, _ := page.GetStatusTemplate()
-e.GET("jobs", func (context echo.Context) error {
-	// Serve the template to the writer and pass the current status data.
-	return index.Execute(context.Response().Writer, manager.GetStatusData())
-})
+	// An example using echo as the router.
+	e := echo.New()
+	index, _ := page.GetStatusTemplate()
+	e.GET("/jobs", func(context echo.Context) error {
+		// Serve the template to the writer and pass the current status data.
+		return index.Execute(context.Response().Writer, manager.GetStatusData())
+	})
+}
 ```
 
 ### Server is located in the US, but my user is in Jakarta, can I change the cron timezone?
@@ -211,17 +195,17 @@ Yes, you can. By default, the cron timezone will follow the server location time
 package main
 
 func main() {
+	loc := func() *time.Location { // Change timezone to Jakarta.
+		jakarta, err := time.LoadLocation("Asia/Jakarta")
+		if err != nil {
+			secondsEastOfUTC := int((7 * time.Hour).Seconds())
+			jakarta = time.FixedZone("WIB", secondsEastOfUTC)
+		}
+		return jakarta
+	}()
+
 	// Create a custom config.
-	cronx.NewManager(cronx.Config{
-		Location: func() *time.Location { // Change timezone to Jakarta.
-			jakarta, err := time.LoadLocation("Asia/Jakarta")
-			if err != nil {
-				secondsEastOfUTC := int((7 * time.Hour).Seconds())
-				jakarta = time.FixedZone("WIB", secondsEastOfUTC)
-			}
-			return jakarta
-		}(),
-	})
+	cronx.NewManager(cronx.WithLocation(loc))
 }
 ```
 
@@ -237,13 +221,9 @@ type subscription struct{}
 func (subscription) Run(ctx context.Context) error {
 	md, ok := cronx.GetJobMetadata(ctx)
 	if !ok {
-		return errors.New("cannot get job metadata")
+		return errors.New("cannot job metadata")
 	}
-
-	log.WithLevel(zerolog.InfoLevel).
-		Str("job", "subscription").
-		Interface("metadata", md).
-		Msg("is running")
+	logx.INF(ctx, logx.KV{"job": fn.Name(), "metadata": md}, "subscription is running")
 	return nil
 }
 ```

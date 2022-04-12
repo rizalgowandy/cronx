@@ -26,8 +26,8 @@ func TestServerController_APIJobs(t *testing.T) {
 			target: "/api/jobs",
 			fields: fields{
 				Manager: &Manager{
-					CreatedTime: time.Now(),
-					Location:    time.Local,
+					createdTime: time.Now(),
+					location:    time.Local,
 				},
 			},
 			expect:  http.StatusOK,
@@ -67,8 +67,8 @@ func TestServerController_HealthCheck(t *testing.T) {
 			target: "/",
 			fields: fields{
 				Manager: &Manager{
-					CreatedTime: time.Now(),
-					Location:    time.Local,
+					createdTime: time.Now(),
+					location:    time.Local,
 				},
 			},
 			expect:  http.StatusOK,
@@ -108,8 +108,8 @@ func TestServerController_Jobs(t *testing.T) {
 			target: "/jobs",
 			fields: fields{
 				Manager: &Manager{
-					CreatedTime: time.Now(),
-					Location:    time.Local,
+					createdTime: time.Now(),
+					location:    time.Local,
 				},
 			},
 			expect:  http.StatusOK,
