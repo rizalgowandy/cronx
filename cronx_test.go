@@ -13,7 +13,6 @@ import (
 
 func TestNewManager(t *testing.T) {
 	type args struct {
-		config       Config
 		interceptors Interceptor
 	}
 	tests := []struct {
@@ -27,7 +26,7 @@ func TestNewManager(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewManager(tt.args.config, tt.args.interceptors)
+			got := NewManager(WithInterceptor(tt.args.interceptors))
 			assert.NotNil(t, got)
 		})
 	}
@@ -50,7 +49,7 @@ func TestManager_Schedule(t *testing.T) {
 				spec: "this is clearly not a spec",
 				job:  Func(func(ctx context.Context) error { return nil }),
 				mock: func() *Manager {
-					manager := NewManager(Config{})
+					manager := NewManager()
 					return manager
 				},
 			},
@@ -62,7 +61,7 @@ func TestManager_Schedule(t *testing.T) {
 				spec: "@every 5m",
 				job:  Func(func(ctx context.Context) error { return nil }),
 				mock: func() *Manager {
-					manager := NewManager(Config{})
+					manager := NewManager()
 					return manager
 				},
 			},
@@ -74,7 +73,7 @@ func TestManager_Schedule(t *testing.T) {
 				spec: "0 */30 * * * *",
 				job:  Func(func(ctx context.Context) error { return nil }),
 				mock: func() *Manager {
-					manager := NewManager(Config{})
+					manager := NewManager()
 					return manager
 				},
 			},
@@ -86,7 +85,7 @@ func TestManager_Schedule(t *testing.T) {
 				spec: "*/30 * * * *",
 				job:  Func(func(ctx context.Context) error { return nil }),
 				mock: func() *Manager {
-					manager := NewManager(Config{})
+					manager := NewManager()
 					return manager
 				},
 			},
@@ -171,7 +170,7 @@ func TestManager_Schedules(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			manager := NewManager(Config{})
+			manager := NewManager()
 			if err := manager.Schedules(tt.args.spec, tt.args.separator, tt.args.job); (err != nil) != tt.wantErr {
 				t.Errorf("Schedules() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -188,7 +187,7 @@ func TestManager_Start(t *testing.T) {
 		{
 			name: "Success",
 			mock: func() *Manager {
-				manager := NewManager(Config{})
+				manager := NewManager()
 				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
 				return manager
 			},
@@ -212,7 +211,7 @@ func TestManager_Stop(t *testing.T) {
 		{
 			name: "Success",
 			mock: func() *Manager {
-				manager := NewManager(Config{})
+				manager := NewManager()
 				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
 				return manager
 			},
@@ -236,7 +235,7 @@ func TestGetEntries(t *testing.T) {
 		{
 			name: "Success",
 			mock: func() *Manager {
-				manager := NewManager(Config{})
+				manager := NewManager()
 				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
 				return manager
 			},
@@ -269,7 +268,7 @@ func TestManager_GetEntry(t *testing.T) {
 		{
 			name: "Success",
 			mock: func() *Manager {
-				manager := NewManager(Config{})
+				manager := NewManager()
 				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
 				return manager
 			},
@@ -302,7 +301,7 @@ func TestManager_Remove(t *testing.T) {
 		{
 			name: "Success",
 			mock: func() *Manager {
-				manager := NewManager(Config{})
+				manager := NewManager()
 				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
 				return manager
 			},
@@ -338,14 +337,7 @@ func TestManager_GetInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Manager{
-				Commander:        tt.fields.Commander,
-				Interceptor:      tt.fields.Interceptor,
-				Parser:           tt.fields.Parser,
-				UnregisteredJobs: tt.fields.UnregisteredJobs,
-				Location:         tt.fields.Location,
-				CreatedTime:      tt.fields.CreatedTime,
-			}
+			c := NewManager()
 			got := c.GetInfo()
 			assert.NotNil(t, got)
 		})
@@ -408,10 +400,10 @@ func TestManager_GetStatusData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Manager{
-				Commander:        tt.fields.Commander,
-				Interceptor:      tt.fields.Interceptor,
-				Parser:           tt.fields.Parser,
-				UnregisteredJobs: tt.fields.UnregisteredJobs,
+				commander:        tt.fields.Commander,
+				interceptor:      tt.fields.Interceptor,
+				parser:           tt.fields.Parser,
+				unregisteredJobs: tt.fields.UnregisteredJobs,
 			}
 			if got := c.GetStatusData(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetStatusData() = %v, want %v", got, tt.want)
@@ -458,10 +450,10 @@ func TestManager_GetStatusJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Manager{
-				Commander:        tt.fields.Commander,
-				Interceptor:      tt.fields.Interceptor,
-				Parser:           tt.fields.Parser,
-				UnregisteredJobs: tt.fields.UnregisteredJobs,
+				commander:        tt.fields.Commander,
+				interceptor:      tt.fields.Interceptor,
+				parser:           tt.fields.Parser,
+				unregisteredJobs: tt.fields.UnregisteredJobs,
 			}
 			got := c.GetStatusJSON()
 			assert.NotNil(t, got)

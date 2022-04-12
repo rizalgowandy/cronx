@@ -8,58 +8,56 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-var defaultConfig = Config{Location: time.Local}
-
-// Config defines the config for the manager.
-type Config struct {
-	// Location describes the timezone current cron is running.
-	Location *time.Location
-}
-
-// NewManager create a command controller with a specific config.
-func NewManager(config Config, interceptors ...Interceptor) *Manager {
-	if config.Location == nil {
-		config.Location = defaultConfig.Location
-	}
-
+// Default configuration for the manager.
+var (
 	// Support the v1 where the first parameter is second.
-	parser := cron.NewParser(
+	DefaultParser = cron.NewParser(
 		cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
 	)
+	DefaultInterceptors = Chain()
+	DefaultLocation     = time.Local
+)
 
-	// Create the commander.
+// NewManager create a command controller with a specific config.
+func NewManager(opts ...Option) *Manager {
+	manager := &Manager{
+		commander:        nil,
+		interceptor:      DefaultInterceptors,
+		parser:           DefaultParser,
+		location:         DefaultLocation,
+		createdTime:      time.Now().In(DefaultLocation),
+		unregisteredJobs: nil,
+	}
+	for _, opt := range opts {
+		opt(manager)
+	}
+
 	commander := cron.New(
-		cron.WithParser(parser),
-		cron.WithLocation(config.Location),
+		cron.WithParser(manager.parser),
+		cron.WithLocation(manager.location),
 	)
 	commander.Start()
 
-	// Create command controller.
-	return &Manager{
-		Commander:        commander,
-		Interceptor:      Chain(interceptors...),
-		Parser:           parser,
-		UnregisteredJobs: nil,
-		Location:         config.Location,
-		CreatedTime:      time.Now().In(config.Location),
-	}
+	manager.commander = commander
+	manager.createdTime = time.Now().In(manager.location)
+	return manager
 }
 
 // Manager controls all the underlying job.
 type Manager struct {
-	// Commander holds all the underlying cron jobs.
-	Commander *cron.Cron
-	// Interceptor holds middleware that will be executed before current job operation.
-	Interceptor Interceptor
-	// Parser is a custom parser to support v1 that contains second as first parameter.
-	Parser cron.Parser
-	// UnregisteredJobs describes the list of jobs that have been failed to be registered.
-	UnregisteredJobs []*Job
-	// Location describes the timezone current cron is running.
+	// commander holds all the underlying cron jobs.
+	commander *cron.Cron
+	// interceptor holds middleware that will be executed before current job operation.
+	interceptor Interceptor
+	// parser is a custom parser to support v1 that contains second as first parameter.
+	parser cron.Parser
+	// location describes the timezone current cron is running.
 	// By default the timezone will be the same timezone as the server.
-	Location *time.Location
-	// CreatedTime describes when the command controller created.
-	CreatedTime time.Time
+	location *time.Location
+	// createdTime describes when the command controller created.
+	createdTime time.Time
+	// unregisteredJobs describes the list of jobs that have been failed to be registered.
+	unregisteredJobs []*Job
 }
 
 // Schedule sets a job to run at specific time.
@@ -96,38 +94,38 @@ func (m *Manager) Schedules(spec, separator string, job JobItf) error {
 
 func (m *Manager) schedule(spec string, job JobItf, waveNumber, totalWave int64) error {
 	// Check if spec is correct.
-	schedule, err := m.Parser.Parse(spec)
+	schedule, err := m.parser.Parse(spec)
 	if err != nil {
 		downJob := NewJob(m, job, waveNumber, totalWave)
 		downJob.Status = StatusCodeDown
 		downJob.Error = err.Error()
-		m.UnregisteredJobs = append(m.UnregisteredJobs, downJob)
+		m.unregisteredJobs = append(m.unregisteredJobs, downJob)
 		return err
 	}
 
 	j := NewJob(m, job, waveNumber, totalWave)
-	j.EntryID = m.Commander.Schedule(schedule, j)
+	j.EntryID = m.commander.Schedule(schedule, j)
 	return nil
 }
 
 // Start starts jobs from running at the next scheduled time.
 func (m *Manager) Start() {
-	m.Commander.Start()
+	m.commander.Start()
 }
 
 // Stop stops active jobs from running at the next scheduled time.
 func (m *Manager) Stop() {
-	m.Commander.Stop()
+	m.commander.Stop()
 }
 
 // GetEntries returns all the current registered jobs.
 func (m *Manager) GetEntries() []cron.Entry {
-	return m.Commander.Entries()
+	return m.commander.Entries()
 }
 
 // GetEntry returns a snapshot of the given entry, or nil if it couldn't be found.
 func (m *Manager) GetEntry(id cron.EntryID) *cron.Entry {
-	entry := m.Commander.Entry(id)
+	entry := m.commander.Entry(id)
 	return &entry
 }
 
@@ -135,37 +133,33 @@ func (m *Manager) GetEntry(id cron.EntryID) *cron.Entry {
 // Get EntryID from the list job entries manager.GetEntries().
 // If job is in the middle of running, once the process is finished it will be removed.
 func (m *Manager) Remove(id cron.EntryID) {
-	m.Commander.Remove(id)
+	m.commander.Remove(id)
 }
 
 // GetInfo returns command controller basic information.
 func (m *Manager) GetInfo() map[string]interface{} {
-	if m.Location == nil {
-		m.Location = defaultConfig.Location
-	}
-
-	currentTime := time.Now().In(m.Location)
+	currentTime := time.Now().In(m.location)
 
 	return map[string]interface{}{
 		"data": map[string]interface{}{
-			"location":     m.Location.String(),
-			"created_time": m.CreatedTime.String(),
+			"location":     m.location.String(),
+			"created_time": m.createdTime.String(),
 			"current_time": currentTime.String(),
-			"up_time":      currentTime.Sub(m.CreatedTime).String(),
+			"up_time":      currentTime.Sub(m.createdTime).String(),
 		},
 	}
 }
 
 // GetStatusData returns all jobs status.
 func (m *Manager) GetStatusData() []StatusData {
-	if m.Commander == nil {
+	if m.commander == nil {
 		return nil
 	}
 
-	entries := m.Commander.Entries()
+	entries := m.commander.Entries()
 	totalEntries := len(entries)
 
-	downs := m.UnregisteredJobs
+	downs := m.unregisteredJobs
 	totalDowns := len(downs)
 
 	totalJobs := totalEntries + totalDowns
