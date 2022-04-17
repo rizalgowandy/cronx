@@ -189,7 +189,7 @@ func (m *Manager) GetStatusData(param ...string) []StatusData {
 	if len(param) > 0 {
 		sorts := NewSorts(param[0])
 		for _, v := range sorts {
-			sorter := NewSorter(v.Key, v.Order, data)
+			sorter := NewStatusDataSorter(v.Key, v.Order, data)
 			sort.Sort(sorter)
 		}
 	}

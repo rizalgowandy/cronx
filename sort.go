@@ -8,8 +8,9 @@ import (
 type SortOrder int64
 
 const (
-	Ascending SortOrder = iota
-	Descending
+	SortOrderUndefined SortOrder = iota
+	SortOrderAscending
+	SortOrderDescending
 )
 
 type SortKey string
@@ -22,7 +23,7 @@ const (
 	SortKeyLatency SortKey = "latency"
 )
 
-func NewSorter(key SortKey, order SortOrder, data []StatusData) sort.Interface {
+func NewStatusDataSorter(key SortKey, order SortOrder, data []StatusData) sort.Interface {
 	var sorter sort.Interface
 	switch key {
 	case SortKeyID:
@@ -39,9 +40,9 @@ func NewSorter(key SortKey, order SortOrder, data []StatusData) sort.Interface {
 		sorter = byID(data)
 	}
 	switch order {
-	case Ascending:
+	case SortOrderUndefined, SortOrderAscending:
 		return sorter
-	case Descending:
+	case SortOrderDescending:
 		return sort.Reverse(sorter)
 	default:
 		return sorter
@@ -65,16 +66,16 @@ func NewSorts(qs string) []Sort {
 
 		s := Sort{
 			Key:   SortKey(kv[0]),
-			Order: Ascending,
+			Order: SortOrderAscending,
 		}
 		if len(kv) == 2 {
 			switch kv[1] {
 			case "asc":
-				s.Order = Ascending
+				s.Order = SortOrderAscending
 			case "desc":
-				s.Order = Descending
+				s.Order = SortOrderDescending
 			default:
-				s.Order = Ascending
+				s.Order = SortOrderUndefined
 			}
 		}
 		res = append(res, s)
