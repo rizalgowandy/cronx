@@ -24,10 +24,10 @@ func NewManager(opts ...Option) *Manager {
 	manager := &Manager{
 		commander:            nil,
 		downJobs:             nil,
+		createdTime:          time.Now().In(DefaultLocation),
 		interceptor:          DefaultInterceptors,
 		parser:               DefaultParser,
 		location:             DefaultLocation,
-		createdTime:          time.Now().In(DefaultLocation),
 		autoStart:            true,
 		highPriorityDownJobs: true,
 	}
@@ -42,7 +42,6 @@ func NewManager(opts ...Option) *Manager {
 	if manager.autoStart {
 		commander.Start()
 	}
-
 	manager.commander = commander
 	manager.createdTime = time.Now().In(manager.location)
 	return manager
@@ -54,6 +53,8 @@ type Manager struct {
 	commander *cron.Cron
 	// downJobs describes the list of jobs that have been failed to be registered.
 	downJobs []*Job
+	// createdTime describes when the command controller created.
+	createdTime time.Time
 
 	// Configured using Options.
 	//
@@ -64,8 +65,6 @@ type Manager struct {
 	// location describes the timezone current cron is running.
 	// By default the timezone will be the same timezone as the server.
 	location *time.Location
-	// createdTime describes when the command controller created.
-	createdTime time.Time
 	// autoStart determines if the cron will be started automatically or not.
 	autoStart bool
 	// highPriorityDownJobs determines if the down jobs will be put at the top or bottom of the list.
