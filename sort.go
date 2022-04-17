@@ -55,3 +55,12 @@ func (s byStatus) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s byStatus) Less(i, j int) bool {
 	return s[i].Job.status < s[j].Job.status
 }
+
+// byID is a wrapper for sorting the entry array by entry id.
+type byID []StatusData
+
+func (s byID) Len() int      { return len(s) }
+func (s byID) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s byID) Less(i, j int) bool {
+	return s[i].Job.EntryID < s[j].Job.EntryID
+}
