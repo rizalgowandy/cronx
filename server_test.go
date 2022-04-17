@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -25,10 +24,7 @@ func TestServerController_APIJobs(t *testing.T) {
 			name:   "Success",
 			target: "/api/jobs",
 			fields: fields{
-				Manager: &Manager{
-					createdTime: time.Now(),
-					location:    time.Local,
-				},
+				Manager: NewManager(),
 			},
 			expect:  http.StatusOK,
 			wantErr: false,
@@ -66,10 +62,7 @@ func TestServerController_HealthCheck(t *testing.T) {
 			name:   "Success",
 			target: "/",
 			fields: fields{
-				Manager: &Manager{
-					createdTime: time.Now(),
-					location:    time.Local,
-				},
+				Manager: NewManager(),
 			},
 			expect:  http.StatusOK,
 			wantErr: false,
@@ -107,10 +100,7 @@ func TestServerController_Jobs(t *testing.T) {
 			name:   "Success",
 			target: "/jobs",
 			fields: fields{
-				Manager: &Manager{
-					createdTime: time.Now(),
-					location:    time.Local,
-				},
+				Manager: NewManager(),
 			},
 			expect:  http.StatusOK,
 			wantErr: false,

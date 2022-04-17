@@ -36,17 +36,17 @@ const statusTemplate = `
 	   crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/canvas2image@1.0.5/canvas2image.min.js"></script>
 	<script type='text/javascript'>
-		 function screenshot() {
-			 html2canvas(document.querySelector('#table_status')).then(function(canvas) {
-				 Canvas2Image.saveAsPNG(canvas, canvas.width, canvas.height);
-			 });
-		 }
+		function screenshot() {
+			html2canvas(document.querySelector('#table_status')).then(function(canvas) {
+				Canvas2Image.saveAsPNG(canvas, canvas.width, canvas.height);
+			});
+		}
 	</script>
 	<style type="text/css">
-		 body > .ui.container {
-			 margin-top: 3em;
-			 padding-bottom: 3em;
-		 }
+        body > .ui.container {
+            margin-top: 3em;
+            padding-bottom: 3em;
+        }
 	</style>
 	<title>Cronx</title>
 </head>
@@ -101,7 +101,7 @@ const statusTemplate = `
 			<i class="attention icon"></i>
 			<div class="content">
 				<div class="title">Error</div>
-				<div class="description">Job fails on the last run</div>
+				<div class="description">Job fails on the prev run</div>
 			</div>
 		</div>
 	</div>
@@ -112,7 +112,7 @@ const statusTemplate = `
 				<th>ID</th>
 				<th>Name</th>
 				<th>Status</th>
-				<th>Last run</th>
+				<th>Prev run</th>
 				<th class="sorted ascending">Next run</th>
 				<th>Latency</th>
 			</tr>

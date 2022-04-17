@@ -1,5 +1,88 @@
 package cronx
 
+import (
+	"sort"
+	"strings"
+)
+
+type SortOrder int64
+
+const (
+	Ascending SortOrder = iota
+	Descending
+)
+
+type SortKey string
+
+const (
+	SortKeyID      SortKey = "id"
+	SortKeyStatus  SortKey = "status"
+	SortKeyPrevRun SortKey = "prev_run"
+	SortKeyNextRun SortKey = "next_run"
+	SortKeyLatency SortKey = "latency"
+)
+
+func NewSorter(key SortKey, order SortOrder, data []StatusData) sort.Interface {
+	var sorter sort.Interface
+	switch key {
+	case SortKeyID:
+		sorter = byID(data)
+	case SortKeyStatus:
+		sorter = byStatus(data)
+	case SortKeyPrevRun:
+		sorter = byPrevRun(data)
+	case SortKeyNextRun:
+		sorter = byNextRun(data)
+	case SortKeyLatency:
+		sorter = byLatency(data)
+	default:
+		sorter = byID(data)
+	}
+	switch order {
+	case Ascending:
+		return sorter
+	case Descending:
+		return sort.Reverse(sorter)
+	default:
+		return sorter
+	}
+}
+
+type Sort struct {
+	Key   SortKey
+	Order SortOrder
+}
+
+// NewSorts create sorting based on
+// Format:
+//	sort=key1:asc,key2:desc,key3:asc
+func NewSorts(qs string) []Sort {
+	sorts := strings.Split(qs, ",")
+
+	var res []Sort
+	for _, v := range sorts {
+		kv := strings.Split(v, ":")
+
+		s := Sort{
+			Key:   SortKey(kv[0]),
+			Order: Ascending,
+		}
+		if len(kv) == 2 {
+			switch kv[1] {
+			case "asc":
+				s.Order = Ascending
+			case "desc":
+				s.Order = Descending
+			default:
+				s.Order = Ascending
+			}
+		}
+		res = append(res, s)
+	}
+
+	return res
+}
+
 // byNextRun is a wrapper for sorting the entry array by next run time.
 // (with zero time at the end).
 type byNextRun []StatusData

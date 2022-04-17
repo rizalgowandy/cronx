@@ -2,6 +2,7 @@ package cronx
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"time"
 
@@ -172,18 +173,31 @@ func (m *Manager) GetInfo() map[string]interface{} {
 }
 
 // GetStatusData returns all jobs status.
-func (m *Manager) GetStatusData() []StatusData {
-	if m.commander == nil {
-		return nil
-	}
-
+func (m *Manager) GetStatusData(param ...string) []StatusData {
 	entries := m.commander.Entries()
 	totalEntries := len(entries)
+
+	data := make([]StatusData, totalEntries)
+	totalData := totalEntries
+	for k, v := range entries {
+		data[k].ID = v.ID
+		data[k].Job = v.Job.(*Job)
+		data[k].Next = v.Next
+		data[k].Prev = v.Prev
+	}
+
+	if len(param) > 0 {
+		sorts := NewSorts(param[0])
+		for _, v := range sorts {
+			sorter := NewSorter(v.Key, v.Order, data)
+			sort.Sort(sorter)
+		}
+	}
 
 	downs := m.downJobs
 	totalDowns := len(downs)
 
-	totalJobs := totalEntries + totalDowns
+	totalJobs := totalData + totalDowns
 	listStatus := make([]StatusData, totalJobs)
 
 	if m.highPriorityDownJobs {
@@ -193,25 +207,25 @@ func (m *Manager) GetStatusData() []StatusData {
 		}
 
 		// Register other jobs.
-		for k, v := range entries {
+		for k, v := range data {
 			idx := totalDowns + k
 			listStatus[idx].ID = v.ID
-			listStatus[idx].Job = v.Job.(*Job)
+			listStatus[idx].Job = v.Job
 			listStatus[idx].Next = v.Next
 			listStatus[idx].Prev = v.Prev
 		}
 	} else {
 		// Register other jobs.
-		for k, v := range entries {
+		for k, v := range data {
 			listStatus[k].ID = v.ID
-			listStatus[k].Job = v.Job.(*Job)
+			listStatus[k].Job = v.Job
 			listStatus[k].Next = v.Next
 			listStatus[k].Prev = v.Prev
 		}
 
 		// Register down jobs.
 		for k, v := range downs {
-			idx := totalEntries + k
+			idx := totalData + k
 			listStatus[idx].Job = v
 		}
 	}
@@ -220,8 +234,8 @@ func (m *Manager) GetStatusData() []StatusData {
 }
 
 // StatusJSON returns all jobs status as map[string]interface.
-func (m *Manager) GetStatusJSON() map[string]interface{} {
+func (m *Manager) GetStatusJSON(param ...string) map[string]interface{} {
 	return map[string]interface{}{
-		"data": m.GetStatusData(),
+		"data": m.GetStatusData(param...),
 	}
 }
