@@ -2,27 +2,19 @@ package cronx
 
 import (
 	"sort"
-	"strings"
-)
 
-type SortOrder int64
+	"github.com/rizalgowandy/gdk/pkg/sortx"
+)
 
 const (
-	SortOrderAscending SortOrder = iota + 1
-	SortOrderDescending
+	SortKeyID      sortx.Key = "id"
+	SortKeyStatus  sortx.Key = "status"
+	SortKeyPrevRun sortx.Key = "prev_run"
+	SortKeyNextRun sortx.Key = "next_run"
+	SortKeyLatency sortx.Key = "latency"
 )
 
-type SortKey string
-
-const (
-	SortKeyID      SortKey = "id"
-	SortKeyStatus  SortKey = "status"
-	SortKeyPrevRun SortKey = "prev_run"
-	SortKeyNextRun SortKey = "next_run"
-	SortKeyLatency SortKey = "latency"
-)
-
-func NewStatusDataSorter(key SortKey, order SortOrder, data []StatusData) sort.Interface {
+func NewStatusDataSorter(key sortx.Key, order sortx.Order, data []StatusData) sort.Interface {
 	var sorter sort.Interface
 	switch key {
 	case SortKeyID:
@@ -39,48 +31,13 @@ func NewStatusDataSorter(key SortKey, order SortOrder, data []StatusData) sort.I
 		sorter = byID(data)
 	}
 	switch order {
-	case SortOrderAscending:
+	case sortx.OrderAscending:
 		return sorter
-	case SortOrderDescending:
+	case sortx.OrderDescending:
 		return sort.Reverse(sorter)
 	default:
 		return sorter
 	}
-}
-
-type Sort struct {
-	Key   SortKey
-	Order SortOrder
-}
-
-// NewSorts create sorting based on
-// Format:
-//	sort=key1:asc,key2:desc,key3:asc
-func NewSorts(qs string) []Sort {
-	sorts := strings.Split(qs, ",")
-
-	var res []Sort
-	for _, v := range sorts {
-		kv := strings.Split(v, ":")
-
-		s := Sort{
-			Key:   SortKey(kv[0]),
-			Order: SortOrderAscending,
-		}
-		if len(kv) == 2 {
-			switch kv[1] {
-			case "asc":
-				s.Order = SortOrderAscending
-			case "desc":
-				s.Order = SortOrderDescending
-			default:
-				s.Order = SortOrderAscending
-			}
-		}
-		res = append(res, s)
-	}
-
-	return res
 }
 
 // byNextRun is a wrapper for sorting the entry array by next run time.
