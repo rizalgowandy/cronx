@@ -102,7 +102,7 @@ func RegisterJobs(ctx context.Context, manager *cronx.Manager) {
 	}
 
 	// Create some jobs with broken spec.
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 2; i++ {
 		spec := "broken spec " + converter.String(i+1)
 		if err := manager.Schedule(spec, payBill{}); err != nil {
 			logx.ERR(ctx, errorx.E(err), "register payBill must success")

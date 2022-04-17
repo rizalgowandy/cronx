@@ -28,17 +28,17 @@
 	   crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/canvas2image@1.0.5/canvas2image.min.js"></script>
 	<script type='text/javascript'>
-		 function screenshot() {
-			 html2canvas(document.querySelector('#table_status')).then(function(canvas) {
-				 Canvas2Image.saveAsPNG(canvas, canvas.width, canvas.height);
-			 });
-		 }
+		function screenshot() {
+			html2canvas(document.querySelector('#table_status')).then(function(canvas) {
+				Canvas2Image.saveAsPNG(canvas, canvas.width, canvas.height);
+			});
+		}
 	</script>
 	<style type="text/css">
-		 body > .ui.container {
-			 margin-top: 3em;
-			 padding-bottom: 3em;
-		 }
+        body > .ui.container {
+            margin-top: 3em;
+            padding-bottom: 3em;
+        }
 	</style>
 	<title>Cronx</title>
 </head>
