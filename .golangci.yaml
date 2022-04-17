@@ -102,7 +102,6 @@ linters:
     - typecheck
     - unconvert
     - unparam
-    - unused
     - varcheck
     - whitespace
 
@@ -120,6 +119,7 @@ linters:
   # - prealloc
   # - testpackage
   # - wsl
+  # - unused
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
