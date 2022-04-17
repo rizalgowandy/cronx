@@ -45,6 +45,15 @@ func GetJobName(job JobItf) (name string) {
 	}
 	if name == "Func" {
 		name = "(nameless)"
+		return
+	}
+	if name == "FuncJob" {
+		fj, ok := job.(*FuncJob)
+		if !ok {
+			name = "(nameless)"
+			return
+		}
+		name = fj.name
 	}
 	return
 }

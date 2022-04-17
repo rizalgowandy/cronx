@@ -1,6 +1,7 @@
 package cronx
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -73,6 +74,11 @@ func (m *Manager) Schedule(spec string, job JobItf) error {
 	return m.schedule(spec, job, 1, 1)
 }
 
+// ScheduleFunc adds a func to the Cron to be run on the given schedule.
+func (m *Manager) ScheduleFunc(spec, name string, cmd func(ctx context.Context) error) error {
+	return m.Schedule(spec, NewFuncJob(name, cmd))
+}
+
 // Schedules sets a job to run multiple times at specific time.
 // Symbol */,-? should never be used as separator character.
 // These symbols are reserved for cron specification.
@@ -95,6 +101,11 @@ func (m *Manager) Schedules(spec, separator string, job JobItf) error {
 		}
 	}
 	return nil
+}
+
+// SchedulesFunc adds a func to the Cron to be run on the given schedules.
+func (m *Manager) SchedulesFunc(spec, separator, name string, cmd func(ctx context.Context) error) error {
+	return m.Schedules(spec, separator, NewFuncJob(name, cmd))
 }
 
 func (m *Manager) schedule(spec string, job JobItf, waveNumber, totalWave int64) error {
