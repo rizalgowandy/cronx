@@ -469,13 +469,13 @@ func TestManager_Remove(t *testing.T) {
 
 func TestManager_GetInfo(t *testing.T) {
 	type fields struct {
-		Commander        *cron.Cron
-		Interceptor      Interceptor
-		Parser           cron.Parser
-		UnregisteredJobs []*Job
-		Address          string
-		Location         *time.Location
-		CreatedTime      time.Time
+		Commander   *cron.Cron
+		Interceptor Interceptor
+		Parser      cron.Parser
+		DownJobs    []*Job
+		Address     string
+		Location    *time.Location
+		CreatedTime time.Time
 	}
 	tests := []struct {
 		name   string
@@ -497,10 +497,10 @@ func TestManager_GetInfo(t *testing.T) {
 
 func TestManager_GetStatusData(t *testing.T) {
 	type fields struct {
-		Commander        *cron.Cron
-		Interceptor      Interceptor
-		Parser           cron.Parser
-		UnregisteredJobs []*Job
+		Commander   *cron.Cron
+		Interceptor Interceptor
+		Parser      cron.Parser
+		DownJobs    []*Job
 	}
 	tests := []struct {
 		name   string
@@ -518,7 +518,7 @@ func TestManager_GetStatusData(t *testing.T) {
 				Commander:   cron.New(),
 				Interceptor: nil,
 				Parser:      cron.Parser{},
-				UnregisteredJobs: []*Job{
+				DownJobs: []*Job{
 					{
 						Name:    "Cron 1",
 						Status:  "DOWN",
@@ -551,10 +551,10 @@ func TestManager_GetStatusData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Manager{
-				commander:        tt.fields.Commander,
-				interceptor:      tt.fields.Interceptor,
-				parser:           tt.fields.Parser,
-				unregisteredJobs: tt.fields.UnregisteredJobs,
+				commander:   tt.fields.Commander,
+				interceptor: tt.fields.Interceptor,
+				parser:      tt.fields.Parser,
+				downJobs:    tt.fields.DownJobs,
 			}
 			if got := c.GetStatusData(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetStatusData() = %v, want %v", got, tt.want)
@@ -565,10 +565,10 @@ func TestManager_GetStatusData(t *testing.T) {
 
 func TestManager_GetStatusJSON(t *testing.T) {
 	type fields struct {
-		Commander        *cron.Cron
-		Interceptor      Interceptor
-		Parser           cron.Parser
-		UnregisteredJobs []*Job
+		Commander   *cron.Cron
+		Interceptor Interceptor
+		Parser      cron.Parser
+		DownJobs    []*Job
 	}
 	tests := []struct {
 		name   string
@@ -584,7 +584,7 @@ func TestManager_GetStatusJSON(t *testing.T) {
 				Commander:   cron.New(),
 				Interceptor: nil,
 				Parser:      cron.Parser{},
-				UnregisteredJobs: []*Job{
+				DownJobs: []*Job{
 					{
 						Name:    "Cron 1",
 						Status:  "DOWN",
@@ -601,10 +601,10 @@ func TestManager_GetStatusJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Manager{
-				commander:        tt.fields.Commander,
-				interceptor:      tt.fields.Interceptor,
-				parser:           tt.fields.Parser,
-				unregisteredJobs: tt.fields.UnregisteredJobs,
+				commander:   tt.fields.Commander,
+				interceptor: tt.fields.Interceptor,
+				parser:      tt.fields.Parser,
+				downJobs:    tt.fields.DownJobs,
 			}
 			got := c.GetStatusJSON()
 			assert.NotNil(t, got)

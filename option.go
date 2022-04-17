@@ -36,3 +36,10 @@ func WithAutoStartDisabled() Option {
 		m.autoStart = false
 	}
 }
+
+// WithLowPriorityDownJobs puts the down jobs at the bottom of the list.
+func WithLowPriorityDownJobs() Option {
+	return func(m *Manager) {
+		m.highPriorityDownJobs = false
+	}
+}

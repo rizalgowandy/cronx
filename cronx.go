@@ -22,13 +22,14 @@ var (
 // NewManager create a command controller with a specific config.
 func NewManager(opts ...Option) *Manager {
 	manager := &Manager{
-		commander:        nil,
-		interceptor:      DefaultInterceptors,
-		parser:           DefaultParser,
-		location:         DefaultLocation,
-		createdTime:      time.Now().In(DefaultLocation),
-		unregisteredJobs: nil,
-		autoStart:        true,
+		commander:            nil,
+		downJobs:             nil,
+		interceptor:          DefaultInterceptors,
+		parser:               DefaultParser,
+		location:             DefaultLocation,
+		createdTime:          time.Now().In(DefaultLocation),
+		autoStart:            true,
+		highPriorityDownJobs: true,
 	}
 	for _, opt := range opts {
 		opt(manager)
@@ -51,6 +52,11 @@ func NewManager(opts ...Option) *Manager {
 type Manager struct {
 	// commander holds all the underlying cron jobs.
 	commander *cron.Cron
+	// downJobs describes the list of jobs that have been failed to be registered.
+	downJobs []*Job
+
+	// Configured using Options.
+	//
 	// interceptor holds middleware that will be executed before current job operation.
 	interceptor Interceptor
 	// parser is a custom parser to support v1 that contains second as first parameter.
@@ -60,10 +66,10 @@ type Manager struct {
 	location *time.Location
 	// createdTime describes when the command controller created.
 	createdTime time.Time
-	// unregisteredJobs describes the list of jobs that have been failed to be registered.
-	unregisteredJobs []*Job
 	// autoStart determines if the cron will be started automatically or not.
 	autoStart bool
+	// highPriorityDownJobs determines if the down jobs will be put at the top or bottom of the list.
+	highPriorityDownJobs bool
 }
 
 // Schedule sets a job to run at specific time.
@@ -115,7 +121,7 @@ func (m *Manager) schedule(spec string, job JobItf, waveNumber, totalWave int64)
 		downJob := NewJob(m, job, waveNumber, totalWave)
 		downJob.Status = StatusCodeDown
 		downJob.Error = err.Error()
-		m.unregisteredJobs = append(m.unregisteredJobs, downJob)
+		m.downJobs = append(m.downJobs, downJob)
 		return err
 	}
 
@@ -175,24 +181,40 @@ func (m *Manager) GetStatusData() []StatusData {
 	entries := m.commander.Entries()
 	totalEntries := len(entries)
 
-	downs := m.unregisteredJobs
+	downs := m.downJobs
 	totalDowns := len(downs)
 
 	totalJobs := totalEntries + totalDowns
 	listStatus := make([]StatusData, totalJobs)
 
-	// Register down jobs.
-	for k, v := range downs {
-		listStatus[k].Job = v
-	}
+	if m.highPriorityDownJobs {
+		// Register down jobs.
+		for k, v := range downs {
+			listStatus[k].Job = v
+		}
 
-	// Register other jobs.
-	for k, v := range entries {
-		idx := totalDowns + k
-		listStatus[idx].ID = v.ID
-		listStatus[idx].Job = v.Job.(*Job)
-		listStatus[idx].Next = v.Next
-		listStatus[idx].Prev = v.Prev
+		// Register other jobs.
+		for k, v := range entries {
+			idx := totalDowns + k
+			listStatus[idx].ID = v.ID
+			listStatus[idx].Job = v.Job.(*Job)
+			listStatus[idx].Next = v.Next
+			listStatus[idx].Prev = v.Prev
+		}
+	} else {
+		// Register other jobs.
+		for k, v := range entries {
+			listStatus[k].ID = v.ID
+			listStatus[k].Job = v.Job.(*Job)
+			listStatus[k].Next = v.Next
+			listStatus[k].Prev = v.Prev
+		}
+
+		// Register down jobs.
+		for k, v := range downs {
+			idx := totalEntries + k
+			listStatus[idx].Job = v
+		}
 	}
 
 	return listStatus
