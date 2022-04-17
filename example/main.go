@@ -59,7 +59,9 @@ func main() {
 	)
 
 	// Create the manager with middleware.
-	manager := cronx.NewManager(cronx.WithInterceptor(middlewares))
+	manager := cronx.NewManager(
+		cronx.WithInterceptor(middlewares),
+	)
 	defer manager.Stop()
 
 	// Register jobs.

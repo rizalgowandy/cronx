@@ -27,6 +27,7 @@ func NewManager(opts ...Option) *Manager {
 		location:         DefaultLocation,
 		createdTime:      time.Now().In(DefaultLocation),
 		unregisteredJobs: nil,
+		autoStart:        true,
 	}
 	for _, opt := range opts {
 		opt(manager)
@@ -36,7 +37,9 @@ func NewManager(opts ...Option) *Manager {
 		cron.WithParser(manager.parser),
 		cron.WithLocation(manager.location),
 	)
-	commander.Start()
+	if manager.autoStart {
+		commander.Start()
+	}
 
 	manager.commander = commander
 	manager.createdTime = time.Now().In(manager.location)
@@ -58,6 +61,8 @@ type Manager struct {
 	createdTime time.Time
 	// unregisteredJobs describes the list of jobs that have been failed to be registered.
 	unregisteredJobs []*Job
+	// autoStart determines if the cron will be started automatically or not.
+	autoStart bool
 }
 
 // Schedule sets a job to run at specific time.
