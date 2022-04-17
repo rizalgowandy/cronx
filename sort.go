@@ -2,12 +2,15 @@ package cronx
 
 import (
 	"sort"
+	"strings"
+	"unicode"
 
 	"github.com/rizalgowandy/gdk/pkg/sortx"
 )
 
 const (
 	SortKeyID      sortx.Key = "id"
+	SortKeyName    sortx.Key = "name"
 	SortKeyStatus  sortx.Key = "status"
 	SortKeyPrevRun sortx.Key = "prev_run"
 	SortKeyNextRun sortx.Key = "next_run"
@@ -19,6 +22,8 @@ func NewStatusDataSorter(key sortx.Key, order sortx.Order, data []StatusData) so
 	switch key {
 	case SortKeyID:
 		sorter = byID(data)
+	case SortKeyName:
+		sorter = byName(data)
 	case SortKeyStatus:
 		sorter = byStatus(data)
 	case SortKeyPrevRun:
@@ -103,4 +108,15 @@ func (s byID) Len() int      { return len(s) }
 func (s byID) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s byID) Less(i, j int) bool {
 	return s[i].Job.EntryID < s[j].Job.EntryID
+}
+
+// byName is a wrapper for sorting the entry array by name.
+type byName []StatusData
+
+func (s byName) Len() int      { return len(s) }
+func (s byName) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s byName) Less(i, j int) bool {
+	t := strings.Map(unicode.ToUpper, s[i].Job.Name)
+	u := strings.Map(unicode.ToUpper, s[j].Job.Name)
+	return t < u
 }
