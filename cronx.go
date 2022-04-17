@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
+	"github.com/rizalgowandy/gdk/pkg/sortx"
 	"github.com/robfig/cron/v3"
 )
 
@@ -187,7 +188,7 @@ func (m *Manager) GetStatusData(param ...string) []StatusData {
 	}
 
 	if len(param) > 0 {
-		sorts := NewSorts(param[0])
+		sorts := sortx.NewSorts(param[0])
 		for _, v := range sorts {
 			sorter := NewStatusDataSorter(v.Key, v.Order, data)
 			sort.Sort(sorter)
