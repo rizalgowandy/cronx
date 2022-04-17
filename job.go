@@ -77,6 +77,7 @@ type Job struct {
 	inner   JobItf
 	status  uint32
 	running sync.Mutex
+	latency int64
 }
 
 // UpdateStatus updates the current job status to the latest.
@@ -123,7 +124,9 @@ func (j *Job) Run() {
 	}
 
 	// Record time needed to execute the whole process.
-	j.Latency = time.Since(start).String()
+	latency := time.Since(start)
+	j.latency = latency.Nanoseconds()
+	j.Latency = latency.String()
 
 	// Update job status after running.
 	j.UpdateStatus()

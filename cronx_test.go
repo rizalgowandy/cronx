@@ -508,11 +508,6 @@ func TestManager_GetStatusData(t *testing.T) {
 		want   []StatusData
 	}{
 		{
-			name:   "Cron is nil",
-			fields: fields{},
-			want:   nil,
-		},
-		{
 			name: "Success",
 			fields: fields{
 				Commander:   cron.New(),
@@ -574,10 +569,6 @@ func TestManager_GetStatusJSON(t *testing.T) {
 		name   string
 		fields fields
 	}{
-		{
-			name:   "Cron is nil",
-			fields: fields{},
-		},
 		{
 			name: "Success",
 			fields: fields{

@@ -9,6 +9,10 @@ import (
 	"github.com/rizalgowandy/cronx/page"
 )
 
+const (
+	QueryParamSort = "sort"
+)
+
 // SleepDuration defines the duration to sleep the server if the defined address is busy.
 const SleepDuration = time.Second * 10
 
@@ -91,10 +95,12 @@ func (c *ServerController) Jobs(ctx echo.Context) error {
 			"error": err.Error(),
 		})
 	}
-	return index.Execute(ctx.Response().Writer, c.Manager.GetStatusData())
+	param := ctx.QueryParam(QueryParamSort)
+	return index.Execute(ctx.Response().Writer, c.Manager.GetStatusData(param))
 }
 
 // APIJobs returns job status as json.
 func (c *ServerController) APIJobs(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, c.Manager.GetStatusJSON())
+	param := ctx.QueryParam(QueryParamSort)
+	return ctx.JSON(http.StatusOK, c.Manager.GetStatusJSON(param))
 }
