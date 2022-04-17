@@ -102,6 +102,80 @@ func TestManager_Schedule(t *testing.T) {
 	}
 }
 
+func TestManager_ScheduleFunc(t *testing.T) {
+	type args struct {
+		spec string
+		name string
+		cmd  func(ctx context.Context) error
+		mock func() *Manager
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Broken spec",
+			args: args{
+				spec: "this is clearly not a spec",
+				name: "nothing",
+				cmd:  Func(func(ctx context.Context) error { return nil }),
+				mock: func() *Manager {
+					manager := NewManager()
+					return manager
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Success with descriptor",
+			args: args{
+				spec: "@every 5m",
+				name: "nothing",
+				cmd:  Func(func(ctx context.Context) error { return nil }),
+				mock: func() *Manager {
+					manager := NewManager()
+					return manager
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Success with v1",
+			args: args{
+				spec: "0 */30 * * * *",
+				cmd:  Func(func(ctx context.Context) error { return nil }),
+				mock: func() *Manager {
+					manager := NewManager()
+					return manager
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Success with v3",
+			args: args{
+				spec: "*/30 * * * *",
+				name: "nothing",
+				cmd:  Func(func(ctx context.Context) error { return nil }),
+				mock: func() *Manager {
+					manager := NewManager()
+					return manager
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			manager := tt.args.mock()
+			if err := manager.ScheduleFunc(tt.args.spec, tt.args.name, tt.args.cmd); (err != nil) != tt.wantErr {
+				t.Errorf("ScheduleFunc() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestManager_Schedules(t *testing.T) {
 	type args struct {
 		spec      string
@@ -173,6 +247,83 @@ func TestManager_Schedules(t *testing.T) {
 			manager := NewManager()
 			if err := manager.Schedules(tt.args.spec, tt.args.separator, tt.args.job); (err != nil) != tt.wantErr {
 				t.Errorf("Schedules() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestManager_SchedulesFunc(t *testing.T) {
+	type args struct {
+		spec      string
+		separator string
+		name      string
+		cmd       func(ctx context.Context) error
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Empty specification",
+			args: args{
+				spec:      "",
+				separator: "#",
+				cmd:       Func(func(ctx context.Context) error { return nil }),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Empty separator",
+			args: args{
+				spec:      "* 1 * * *",
+				separator: "",
+				cmd:       Func(func(ctx context.Context) error { return nil }),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Broken specification",
+			args: args{
+				spec:      "this is not specification#this is broken",
+				separator: "#",
+				cmd:       Func(func(ctx context.Context) error { return nil }),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Partial broken specification",
+			args: args{
+				spec:      "0 57 0 * * *#this is broken",
+				separator: "#",
+				cmd:       Func(func(ctx context.Context) error { return nil }),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Success with 1 waves",
+			args: args{
+				spec:      "0 57 0 * * *",
+				separator: "#",
+				cmd:       Func(func(ctx context.Context) error { return nil }),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Success with 3 waves",
+			args: args{
+				spec:      "0 57 0 * * *#0 18 16 * * *#0 7 1 * * *",
+				separator: "#",
+				cmd:       Func(func(ctx context.Context) error { return nil }),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			manager := NewManager()
+			if err := manager.SchedulesFunc(tt.args.spec, tt.args.separator, tt.args.name, tt.args.cmd); (err != nil) != tt.wantErr {
+				t.Errorf("SchedulesFunc() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
