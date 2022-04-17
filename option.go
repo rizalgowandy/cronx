@@ -29,3 +29,10 @@ func WithInterceptor(interceptors ...Interceptor) Option {
 		m.interceptor = Chain(interceptors...)
 	}
 }
+
+// WithAutoStartDisabled prevent the cron job from actually running.
+func WithAutoStartDisabled() Option {
+	return func(m *Manager) {
+		m.autoStart = false
+	}
+}
