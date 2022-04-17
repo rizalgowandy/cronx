@@ -8,8 +8,7 @@ import (
 type SortOrder int64
 
 const (
-	SortOrderUndefined SortOrder = iota
-	SortOrderAscending
+	SortOrderAscending SortOrder = iota + 1
 	SortOrderDescending
 )
 
@@ -40,7 +39,7 @@ func NewStatusDataSorter(key SortKey, order SortOrder, data []StatusData) sort.I
 		sorter = byID(data)
 	}
 	switch order {
-	case SortOrderUndefined, SortOrderAscending:
+	case SortOrderAscending:
 		return sorter
 	case SortOrderDescending:
 		return sort.Reverse(sorter)
@@ -75,7 +74,7 @@ func NewSorts(qs string) []Sort {
 			case "desc":
 				s.Order = SortOrderDescending
 			default:
-				s.Order = SortOrderUndefined
+				s.Order = SortOrderAscending
 			}
 		}
 		res = append(res, s)
