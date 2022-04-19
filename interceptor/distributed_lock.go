@@ -13,10 +13,6 @@ import (
 	"github.com/rizalgowandy/gdk/pkg/tags"
 )
 
-type SlackClientItf interface {
-	Send(ctx context.Context, msg string, mention bool)
-}
-
 type DistributedLockItf interface {
 	Mutex(name string) *redsync.Mutex
 }
