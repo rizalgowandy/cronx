@@ -182,7 +182,7 @@ func main() {
 	index, _ := page.GetStatusTemplate()
 	e.GET("/jobs", func(context echo.Context) error {
 		// Serve the template to the writer and pass the current status data.
-		return index.Execute(context.Response().Writer, manager.GetStatusData())
+		return index.Execute(context.Response().Writer, manager.GetStatusPageData())
 	})
 }
 ```

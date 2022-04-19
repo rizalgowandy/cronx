@@ -39,3 +39,9 @@ type StatusData struct {
 	// Prev defines the last run of the current job.
 	Prev time.Time `json:"prev_run,omitempty"`
 }
+
+type StatusPageData struct {
+	StatusData  []StatusData
+	SortQuery   string
+	SortColumns map[string]string
+}
