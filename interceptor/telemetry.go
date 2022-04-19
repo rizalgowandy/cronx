@@ -19,7 +19,7 @@ type TelemetryClientItf interface {
 
 // Telemetry is a middleware that push the latency of a process.
 func Telemetry(metric TelemetryClientItf) cronx.Interceptor {
-	const dividerNStoMS = 1000000
+	const dividerNStoMS = 1e6
 
 	return func(ctx context.Context, job *cronx.Job, handler cronx.Handler) error {
 		start := time.Now()
