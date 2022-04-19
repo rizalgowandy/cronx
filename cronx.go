@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rizalgowandy/cronx/page"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
 	"github.com/rizalgowandy/gdk/pkg/sortx"
 	"github.com/robfig/cron/v3"
@@ -238,5 +239,31 @@ func (m *Manager) GetStatusData(param ...string) []StatusData {
 func (m *Manager) GetStatusJSON(param ...string) map[string]interface{} {
 	return map[string]interface{}{
 		"data": m.GetStatusData(param...),
+	}
+}
+
+// GetStatusPageData returns all jobs status for status page.
+func (m *Manager) GetStatusPageData(param ...string) StatusPageData {
+	var (
+		sortQuery   string
+		sortColumns map[string]string
+	)
+
+	// Default sorting is by id in ascending order.
+	if len(param) == 0 {
+		param = []string{page.ColumnID}
+	}
+
+	sortQuery = param[0]
+	sorts := sortx.NewSorts(sortQuery)
+	sortColumns = make(map[string]string)
+	for _, v := range sorts {
+		sortColumns[string(v.Key)] = string(v.Order)
+	}
+
+	return StatusPageData{
+		StatusData:  m.GetStatusData(param...),
+		SortQuery:   sortQuery,
+		SortColumns: sortColumns,
 	}
 }

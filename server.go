@@ -96,7 +96,7 @@ func (c *ServerController) Jobs(ctx echo.Context) error {
 		})
 	}
 	param := ctx.QueryParam(QueryParamSort)
-	return index.Execute(ctx.Response().Writer, c.Manager.GetStatusData(param))
+	return index.Execute(ctx.Response().Writer, c.Manager.GetStatusPageData(param))
 }
 
 // APIJobs returns job status as json.

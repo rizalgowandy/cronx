@@ -16,7 +16,7 @@ const statusTemplate = `
 	<!-- Standard Meta -->
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<meta http-equiv="refresh" content="5" />
+	<meta http-equiv="refresh" content="5"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 	<!-- Site Properties -->
 	<title>Cronx</title>
@@ -37,6 +37,9 @@ const statusTemplate = `
 	   crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/canvas2image@1.0.5/canvas2image.min.js"></script>
 	<script type='text/javascript'>
+		const sort_query = {{ .SortQuery }};
+		const sort_columns = {{ .SortColumns }};
+
 		function screenshot() {
 			html2canvas(document.querySelector('#table_status')).then(function(canvas) {
 				Canvas2Image.saveAsPNG(canvas, canvas.width, canvas.height);
@@ -110,16 +113,46 @@ const statusTemplate = `
 		<table class="ui sortable selectable center aligned celled table">
 			<thead>
 			<tr>
-				<th>ID</th>
-				<th>Name</th>
-				<th>Status</th>
-				<th>Prev run</th>
-				<th class="sorted ascending">Next run</th>
-				<th>Latency</th>
+				<th id="id"
+                        {{if eq (index .SortColumns "id") "ASC"}} class="sorted ascending"
+                        {{else if eq (index .SortColumns "id") "DESC"}} class="sorted descending"
+                        {{end}}
+				>ID
+				</th>
+				<th id="name"
+                        {{if eq (index .SortColumns "name") "ASC"}} class="sorted ascending"
+                        {{else if eq (index .SortColumns "name") "DESC"}} class="sorted descending"
+                        {{end}}
+				>Name
+				</th>
+				<th id="status"
+                        {{if eq (index .SortColumns "status") "ASC"}} class="sorted ascending"
+                        {{else if eq (index .SortColumns "status") "DESC"}} class="sorted descending"
+                        {{end}}
+				>Status
+				</th>
+				<th id="prev_run"
+                        {{if eq (index .SortColumns "prev_run") "ASC"}} class="sorted ascending"
+                        {{else if eq (index .SortColumns "prev_run") "DESC"}} class="sorted descending"
+                        {{end}}
+				>Prev run
+				</th>
+				<th id="next_run"
+                        {{if eq (index .SortColumns "next_run") "ASC"}} class="sorted ascending"
+                        {{else if eq (index .SortColumns "next_run") "DESC"}} class="sorted descending"
+                        {{end}}
+				>Next run
+				</th>
+				<th id="latency"
+                        {{if eq (index .SortColumns "latency") "ASC"}} class="sorted ascending"
+                        {{else if eq (index .SortColumns "latency") "DESC"}} class="sorted descending"
+                        {{end}}
+				>Latency
+				</th>
 			</tr>
 			</thead>
 			<tbody>
-            {{range .}}
+            {{range .StatusData}}
 				<tr
                         {{if eq .Job.Status "RUNNING"}} class="warning"
                         {{else if eq .Job.Status "IDLE"}} class="positive"
