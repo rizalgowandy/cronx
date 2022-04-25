@@ -43,3 +43,10 @@ func WithLowPriorityDownJobs() Option {
 		m.highPriorityDownJobs = false
 	}
 }
+
+// WithStorage determines the reader and writer for historical data.
+func WithStorage(storage Storage) Option {
+	return func(m *Manager) {
+		m.storage = storage
+	}
+}

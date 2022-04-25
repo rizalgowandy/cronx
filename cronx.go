@@ -72,6 +72,8 @@ type Manager struct {
 	autoStart bool
 	// highPriorityDownJobs determines if the down jobs will be put at the top or bottom of the list.
 	highPriorityDownJobs bool
+	// storage determines where do we record and read the history data.
+	storage Storage
 }
 
 // Schedule sets a job to run at specific time.
