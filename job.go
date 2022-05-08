@@ -7,7 +7,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/rizalgowandy/cronx/storage"
+	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
+	"github.com/rizalgowandy/gdk/pkg/logx"
+	"github.com/rizalgowandy/gdk/pkg/netx"
 	"github.com/robfig/cron/v3"
+	"github.com/segmentio/ksuid"
 )
 
 type JobItf interface {
@@ -124,10 +129,27 @@ func (j *Job) Run() {
 	}
 
 	// Record time needed to execute the whole process.
+	finish := time.Now()
 	latency := time.Since(start)
 	j.latency = latency.Nanoseconds()
 	j.Latency = latency.String()
 
 	// Update job status after running.
 	j.UpdateStatus()
+
+	// Record history.
+	if j.manager.storage != nil {
+		if err := j.manager.storage.WriteHistory(ctx, &storage.History{
+			ID:         ksuid.New().String(),
+			MachineID:  netx.GetIPv4(),
+			CreatedAt:  time.Now(),
+			EntryID:    int64(j.JobMetadata.EntryID),
+			Name:       j.Name,
+			StartedAt:  start,
+			FinishedAt: finish,
+			Latency:    j.latency,
+		}); err != nil {
+			logx.ERR(ctx, errorx.E(err), "write history must success")
+		}
+	}
 }

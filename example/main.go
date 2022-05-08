@@ -6,10 +6,12 @@ import (
 
 	"github.com/rizalgowandy/cronx"
 	"github.com/rizalgowandy/cronx/interceptor"
+	"github.com/rizalgowandy/cronx/storage"
 	"github.com/rizalgowandy/gdk/pkg/converter"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
 	"github.com/rizalgowandy/gdk/pkg/fn"
 	"github.com/rizalgowandy/gdk/pkg/logx"
+	"github.com/rizalgowandy/gdk/pkg/storage/database"
 )
 
 type sendEmail struct{}
@@ -53,6 +55,18 @@ func callMe(ctx context.Context) error {
 func main() {
 	ctx := logx.NewContext()
 
+	// Create database connection.
+	db, err := database.NewPGXClient(ctx, &database.PostgreConfiguration{
+		Address:               "user=unicorn_user password=magical_password dbname=example host=127.0.0.1 port=5432 sslmode=disable",
+		MinConnection:         8,
+		MaxConnection:         16,
+		MaxConnectionLifetime: 3600,
+		MaxConnectionIdleTime: 60,
+	})
+	if err != nil {
+		logx.FTL(ctx, errorx.E(err), "new db client creation must success")
+	}
+
 	// Create middlewares.
 	// The order is important.
 	// The first one will be executed first.
@@ -66,6 +80,7 @@ func main() {
 	// Create the manager with middleware.
 	manager := cronx.NewManager(
 		cronx.WithInterceptor(middlewares),
+		cronx.WithStorage(storage.NewPostgreClient(db)),
 	)
 	defer manager.Stop()
 

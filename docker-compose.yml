@@ -1,0 +1,20 @@
+version: "3"
+services:
+  postgres_cronx:
+    image: postgres:10.6
+    container_name: cronx-postgres
+    volumes:
+      - ./storage/schema:/docker-entrypoint-initdb.d
+      - cronx_database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=unicorn_user
+      - POSTGRES_PASSWORD=magical_password
+      - POSTGRES_DB=example
+    tty: true
+    restart: unless-stopped
+
+volumes:
+  cronx_database:
+    driver: local
