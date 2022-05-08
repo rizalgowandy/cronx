@@ -12,7 +12,6 @@ import (
 	"github.com/rizalgowandy/gdk/pkg/logx"
 	"github.com/rizalgowandy/gdk/pkg/netx"
 	"github.com/robfig/cron/v3"
-	"github.com/segmentio/ksuid"
 )
 
 type JobItf interface {
@@ -142,7 +141,7 @@ func (j *Job) Run() {
 	// Record history.
 	if j.manager.storage != nil {
 		history := &storage.History{
-			ID:         ksuid.New().String(),
+			ID:         logx.GetRequestID(ctx),
 			CreatedAt:  time.Now(),
 			Name:       j.Name,
 			Status:     j.Status.String(),

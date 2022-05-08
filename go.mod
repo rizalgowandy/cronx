@@ -7,6 +7,5 @@ require (
 	github.com/labstack/echo/v4 v4.5.0
 	github.com/rizalgowandy/gdk v0.7.1
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/testify v1.7.0
 )
