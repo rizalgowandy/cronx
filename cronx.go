@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rizalgowandy/cronx/page"
+	"github.com/rizalgowandy/cronx/storage"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
 	"github.com/rizalgowandy/gdk/pkg/sortx"
 	"github.com/robfig/cron/v3"
@@ -20,6 +21,7 @@ var (
 	)
 	DefaultInterceptors = Chain()
 	DefaultLocation     = time.Local
+	DefaultStorage      = storage.NewNoopClient()
 )
 
 // NewManager create a command controller with a specific config.
@@ -33,6 +35,7 @@ func NewManager(opts ...Option) *Manager {
 		location:             DefaultLocation,
 		autoStart:            true,
 		highPriorityDownJobs: true,
+		storage:              DefaultStorage,
 	}
 	for _, opt := range opts {
 		opt(manager)
@@ -72,6 +75,8 @@ type Manager struct {
 	autoStart bool
 	// highPriorityDownJobs determines if the down jobs will be put at the top or bottom of the list.
 	highPriorityDownJobs bool
+	// storage determines where do we record and read the history data.
+	storage storage.Client
 }
 
 // Schedule sets a job to run at specific time.
@@ -112,7 +117,10 @@ func (m *Manager) Schedules(spec, separator string, job JobItf) error {
 }
 
 // SchedulesFunc adds a func to the Cron to be run on the given schedules.
-func (m *Manager) SchedulesFunc(spec, separator, name string, cmd func(ctx context.Context) error) error {
+func (m *Manager) SchedulesFunc(
+	spec, separator, name string,
+	cmd func(ctx context.Context) error,
+) error {
 	return m.Schedules(spec, separator, NewFuncJob(name, cmd))
 }
 

@@ -9,6 +9,10 @@ import (
 // StatusCode describes current job status.
 type StatusCode string
 
+func (s StatusCode) String() string {
+	return string(s)
+}
+
 const (
 	// StatusCodeUp describes that current job has just been created.
 	StatusCodeUp StatusCode = "UP"
