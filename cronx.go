@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rizalgowandy/cronx/page"
+	"github.com/rizalgowandy/cronx/storage"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
 	"github.com/rizalgowandy/gdk/pkg/sortx"
 	"github.com/robfig/cron/v3"
@@ -73,7 +74,7 @@ type Manager struct {
 	// highPriorityDownJobs determines if the down jobs will be put at the top or bottom of the list.
 	highPriorityDownJobs bool
 	// storage determines where do we record and read the history data.
-	storage Storage
+	storage storage.Client
 }
 
 // Schedule sets a job to run at specific time.

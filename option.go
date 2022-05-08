@@ -3,6 +3,7 @@ package cronx
 import (
 	"time"
 
+	"github.com/rizalgowandy/cronx/storage"
 	"github.com/robfig/cron/v3"
 )
 
@@ -45,8 +46,8 @@ func WithLowPriorityDownJobs() Option {
 }
 
 // WithStorage determines the reader and writer for historical data.
-func WithStorage(storage Storage) Option {
+func WithStorage(client storage.Client) Option {
 	return func(m *Manager) {
-		m.storage = storage
+		m.storage = client
 	}
 }
