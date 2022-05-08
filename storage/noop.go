@@ -17,6 +17,9 @@ func (n NoopClient) WriteHistory(_ context.Context, _ *History) error {
 	return nil
 }
 
-func (n NoopClient) ReadHistories(_ context.Context, _ pagination.Request) (ReadHistoriesRes, error) {
+func (n NoopClient) ReadHistories(
+	_ context.Context,
+	_ pagination.Request,
+) (ReadHistoriesRes, error) {
 	return ReadHistoriesRes{}, nil
 }

@@ -106,6 +106,9 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, param *History) error 
 	return nil
 }
 
-func (p *PostgreClient) ReadHistories(ctx context.Context, param pagination.Request) (ReadHistoriesRes, error) {
+func (p *PostgreClient) ReadHistories(
+	ctx context.Context,
+	param pagination.Request,
+) (ReadHistoriesRes, error) {
 	panic("implement me")
 }
