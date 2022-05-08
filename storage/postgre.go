@@ -33,13 +33,14 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, param *History) error 
 	query := `
 		INSERT INTO cronx_histories (
 			id,
-			machine_id,
 			created_at,
-			entry_id,
 			name,
+			status,
+			status_code,
 			started_at,
 			finished_at,
-			latency
+			latency,
+			metadata
 		)
 		VALUES (
 		   $1,
@@ -49,7 +50,8 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, param *History) error 
 		   $5,
 		   $6,
 		   $7,
-		   $8
+		   $8,
+		   $9
 		)
 		;
 	`
@@ -58,13 +60,14 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, param *History) error 
 		ctx,
 		query,
 		param.ID,
-		param.MachineID,
 		param.CreatedAt,
-		param.EntryID,
 		param.Name,
+		param.Status,
+		param.StatusCode,
 		param.StartedAt,
 		param.FinishedAt,
 		param.Latency,
+		param.Metadata,
 	)
 	if err != nil {
 		return errorx.E(err, fields)

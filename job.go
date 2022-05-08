@@ -141,13 +141,20 @@ func (j *Job) Run() {
 	if j.manager.storage != nil {
 		if err := j.manager.storage.WriteHistory(ctx, &storage.History{
 			ID:         ksuid.New().String(),
-			MachineID:  netx.GetIPv4(),
 			CreatedAt:  time.Now(),
-			EntryID:    int64(j.JobMetadata.EntryID),
 			Name:       j.Name,
+			Status:     j.Status.String(),
+			StatusCode: int64(j.status),
 			StartedAt:  start,
 			FinishedAt: finish,
 			Latency:    j.latency,
+			Metadata: storage.HistoryMetadata{
+				MachineID:  netx.GetIPv4(),
+				EntryID:    int64(j.JobMetadata.EntryID),
+				Wave:       j.JobMetadata.Wave,
+				TotalWave:  j.JobMetadata.TotalWave,
+				IsLastWave: j.JobMetadata.IsLastWave,
+			},
 		}); err != nil {
 			logx.ERR(ctx, errorx.E(err), "write history must success")
 		}
