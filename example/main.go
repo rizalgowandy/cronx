@@ -12,6 +12,7 @@ import (
 	"github.com/rizalgowandy/gdk/pkg/fn"
 	"github.com/rizalgowandy/gdk/pkg/logx"
 	"github.com/rizalgowandy/gdk/pkg/storage/database"
+	"github.com/rizalgowandy/gdk/pkg/tags"
 )
 
 type sendEmail struct{}
@@ -31,7 +32,12 @@ func (p payBill) Run(ctx context.Context) error {
 type alwaysError struct{}
 
 func (a alwaysError) Run(ctx context.Context) error {
-	err := errorx.E("some super long error message that come from executing the process")
+	err := errorx.E(
+		"some super long error message that come from executing the process",
+		errorx.Fields{tags.User: 1},
+		errorx.MetricStatusExpectedErr,
+		errorx.CodeNotFound,
+	)
 	logx.ERR(ctx, err, "every 30 sec error")
 	return err
 }
@@ -117,7 +123,7 @@ func RegisterJobs(ctx context.Context, manager *cronx.Manager) {
 	}
 
 	// Create some jobs with broken spec.
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 1; i++ {
 		spec := "broken spec " + converter.String(i+1)
 		if err := manager.Schedule(spec, payBill{}); err != nil {
 			logx.ERR(ctx, errorx.E(err), "register payBill must success")

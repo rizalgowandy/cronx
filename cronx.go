@@ -115,7 +115,10 @@ func (m *Manager) Schedules(spec, separator string, job JobItf) error {
 }
 
 // SchedulesFunc adds a func to the Cron to be run on the given schedules.
-func (m *Manager) SchedulesFunc(spec, separator, name string, cmd func(ctx context.Context) error) error {
+func (m *Manager) SchedulesFunc(
+	spec, separator, name string,
+	cmd func(ctx context.Context) error,
+) error {
 	return m.Schedules(spec, separator, NewFuncJob(name, cmd))
 }
 

@@ -40,6 +40,7 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, param *History) error 
 			started_at,
 			finished_at,
 			latency,
+			error,
 			metadata
 		)
 		VALUES (
@@ -51,7 +52,8 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, param *History) error 
 		   $6,
 		   $7,
 		   $8,
-		   $9
+		   $9,
+		   $10
 		)
 		;
 	`
@@ -67,6 +69,7 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, param *History) error 
 		param.StartedAt,
 		param.FinishedAt,
 		param.Latency,
+		param.Error,
 		param.Metadata,
 	)
 	if err != nil {
@@ -103,6 +106,9 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, param *History) error 
 	return nil
 }
 
-func (p *PostgreClient) ReadHistories(ctx context.Context, param pagination.Request) (ReadHistoriesRes, error) {
+func (p *PostgreClient) ReadHistories(
+	ctx context.Context,
+	param pagination.Request,
+) (ReadHistoriesRes, error) {
 	panic("implement me")
 }

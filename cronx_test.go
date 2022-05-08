@@ -339,7 +339,10 @@ func TestManager_Start(t *testing.T) {
 			name: "Success",
 			mock: func() *Manager {
 				manager := NewManager()
-				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
+				_ = manager.Schedule(
+					"@every 5m",
+					Func(func(ctx context.Context) error { return nil }),
+				)
 				return manager
 			},
 			want: true,
@@ -363,7 +366,10 @@ func TestManager_Stop(t *testing.T) {
 			name: "Success",
 			mock: func() *Manager {
 				manager := NewManager()
-				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
+				_ = manager.Schedule(
+					"@every 5m",
+					Func(func(ctx context.Context) error { return nil }),
+				)
 				return manager
 			},
 			want: true,
@@ -387,7 +393,10 @@ func TestGetEntries(t *testing.T) {
 			name: "Success",
 			mock: func() *Manager {
 				manager := NewManager()
-				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
+				_ = manager.Schedule(
+					"@every 5m",
+					Func(func(ctx context.Context) error { return nil }),
+				)
 				return manager
 			},
 			want: true,
@@ -420,7 +429,10 @@ func TestManager_GetEntry(t *testing.T) {
 			name: "Success",
 			mock: func() *Manager {
 				manager := NewManager()
-				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
+				_ = manager.Schedule(
+					"@every 5m",
+					Func(func(ctx context.Context) error { return nil }),
+				)
 				return manager
 			},
 			want: true,
@@ -453,7 +465,10 @@ func TestManager_Remove(t *testing.T) {
 			name: "Success",
 			mock: func() *Manager {
 				manager := NewManager()
-				_ = manager.Schedule("@every 5m", Func(func(ctx context.Context) error { return nil }))
+				_ = manager.Schedule(
+					"@every 5m",
+					Func(func(ctx context.Context) error { return nil }),
+				)
 				return manager
 			},
 			want: true,

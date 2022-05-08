@@ -9,6 +9,7 @@ CREATE TABLE cronx_histories (
 	started_at  TIMESTAMPTZ        NOT NULL,
 	finished_at TIMESTAMPTZ        NOT NULL,
 	latency     INT8               NOT NULL,
+	error       JSONB DEFAULT '{}' NOT NULL,
 	metadata    JSONB DEFAULT '{}' NOT NULL
 );
 

@@ -83,6 +83,7 @@ type Job struct {
 	status  uint32
 	running sync.Mutex
 	latency int64
+	err     error
 }
 
 // UpdateStatus updates the current job status to the latest.
@@ -105,7 +106,7 @@ func (j *Job) UpdateStatus() StatusCode {
 // Run executes the current job operation.
 func (j *Job) Run() {
 	start := time.Now()
-	ctx := context.Background()
+	ctx := logx.NewContext()
 
 	// Lock current process.
 	j.running.Lock()
@@ -122,6 +123,7 @@ func (j *Job) Run() {
 	if err := j.manager.interceptor(ctx, j, func(ctx context.Context, job *Job) error {
 		return job.inner.Run(ctx)
 	}); err != nil {
+		j.err = err
 		j.Error = err.Error()
 		atomic.StoreUint32(&j.status, statusError)
 	} else {
@@ -139,7 +141,7 @@ func (j *Job) Run() {
 
 	// Record history.
 	if j.manager.storage != nil {
-		if err := j.manager.storage.WriteHistory(ctx, &storage.History{
+		history := &storage.History{
 			ID:         ksuid.New().String(),
 			CreatedAt:  time.Now(),
 			Name:       j.Name,
@@ -149,13 +151,31 @@ func (j *Job) Run() {
 			FinishedAt: finish,
 			Latency:    j.latency,
 			Metadata: storage.HistoryMetadata{
-				MachineID:  netx.GetIPv4(),
-				EntryID:    int64(j.JobMetadata.EntryID),
-				Wave:       j.JobMetadata.Wave,
-				TotalWave:  j.JobMetadata.TotalWave,
-				IsLastWave: j.JobMetadata.IsLastWave,
+				MachineID: netx.GetIPv4(),
+				EntryID:   int64(j.JobMetadata.EntryID),
 			},
-		}); err != nil {
+		}
+		if j.JobMetadata.TotalWave > 1 {
+			history.Metadata.Wave = j.JobMetadata.Wave
+			history.Metadata.TotalWave = j.JobMetadata.TotalWave
+			history.Metadata.IsLastWave = j.JobMetadata.IsLastWave
+		}
+		if j.err != nil {
+			history.Error.Err = j.err.Error()
+			if e, ok := j.err.(*errorx.Error); ok {
+				history.Error = storage.ErrorDetail{
+					Err:          e.Err.Error(),
+					Code:         e.Code,
+					Fields:       e.Fields,
+					OpTraces:     e.OpTraces,
+					Message:      e.Message,
+					Line:         e.Line,
+					MetricStatus: e.MetricStatus,
+				}
+			}
+		}
+
+		if err := j.manager.storage.WriteHistory(ctx, history); err != nil {
 			logx.ERR(ctx, errorx.E(err), "write history must success")
 		}
 	}
