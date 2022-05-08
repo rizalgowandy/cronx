@@ -21,6 +21,7 @@ var (
 	)
 	DefaultInterceptors = Chain()
 	DefaultLocation     = time.Local
+	DefaultStorage      = storage.NewNoopClient()
 )
 
 // NewManager create a command controller with a specific config.
@@ -34,6 +35,7 @@ func NewManager(opts ...Option) *Manager {
 		location:             DefaultLocation,
 		autoStart:            true,
 		highPriorityDownJobs: true,
+		storage:              DefaultStorage,
 	}
 	for _, opt := range opts {
 		opt(manager)

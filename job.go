@@ -139,43 +139,49 @@ func (j *Job) Run() {
 	j.UpdateStatus()
 
 	// Record history.
-	if j.manager.storage != nil {
-		history := &storage.History{
-			ID:         logx.GetRequestID(ctx),
-			CreatedAt:  time.Now(),
-			Name:       j.Name,
-			Status:     j.Status.String(),
-			StatusCode: int64(j.status),
-			StartedAt:  start,
-			FinishedAt: finish,
-			Latency:    j.latency,
-			Metadata: storage.HistoryMetadata{
-				MachineID: netx.GetIPv4(),
-				EntryID:   int64(j.JobMetadata.EntryID),
-			},
-		}
-		if j.JobMetadata.TotalWave > 1 {
-			history.Metadata.Wave = j.JobMetadata.Wave
-			history.Metadata.TotalWave = j.JobMetadata.TotalWave
-			history.Metadata.IsLastWave = j.JobMetadata.IsLastWave
-		}
-		if j.err != nil {
-			history.Error.Err = j.err.Error()
-			if e, ok := j.err.(*errorx.Error); ok {
-				history.Error = storage.ErrorDetail{
-					Err:          e.Err.Error(),
-					Code:         e.Code,
-					Fields:       e.Fields,
-					OpTraces:     e.OpTraces,
-					Message:      e.Message,
-					Line:         e.Line,
-					MetricStatus: e.MetricStatus,
-				}
+	j.RecordHistory(ctx, start, finish)
+}
+
+func (j *Job) RecordHistory(ctx context.Context, start, finish time.Time) {
+	history := &storage.History{
+		ID:         logx.GetRequestID(ctx),
+		CreatedAt:  time.Now(),
+		Name:       j.Name,
+		Status:     j.Status.String(),
+		StatusCode: int64(j.status),
+		StartedAt:  start,
+		FinishedAt: finish,
+		Latency:    j.latency,
+		Metadata: storage.HistoryMetadata{
+			MachineID: netx.GetIPv4(),
+			EntryID:   int64(j.JobMetadata.EntryID),
+		},
+	}
+
+	// Only add wave information for job with multiple wave.
+	if j.JobMetadata.TotalWave > 1 {
+		history.Metadata.Wave = j.JobMetadata.Wave
+		history.Metadata.TotalWave = j.JobMetadata.TotalWave
+		history.Metadata.IsLastWave = j.JobMetadata.IsLastWave
+	}
+
+	// Add error detail.
+	if j.err != nil {
+		history.Error.Err = j.err.Error()
+		if e, ok := j.err.(*errorx.Error); ok {
+			history.Error = storage.ErrorDetail{
+				Err:          e.Err.Error(),
+				Code:         e.Code,
+				Fields:       e.Fields,
+				OpTraces:     e.OpTraces,
+				Message:      e.Message,
+				Line:         e.Line,
+				MetricStatus: e.MetricStatus,
 			}
 		}
+	}
 
-		if err := j.manager.storage.WriteHistory(ctx, history); err != nil {
-			logx.ERR(ctx, errorx.E(err), "write history must success")
-		}
+	if err := j.manager.storage.WriteHistory(ctx, history); err != nil {
+		logx.ERR(ctx, errorx.E(err), "write history must success")
 	}
 }
