@@ -7,6 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rizalgowandy/cronx/page"
+	gdkMiddleware "github.com/rizalgowandy/gdk/pkg/httpx/echo/middleware"
+	"github.com/rizalgowandy/gdk/pkg/pagination"
 )
 
 const (
@@ -28,6 +30,7 @@ func NewServer(manager *Manager, address string) (*http.Server, error) {
 	e.Use(middleware.CORS())
 	e.Use(middleware.Recover())
 	e.Use(middleware.RemoveTrailingSlash())
+	e.Use(gdkMiddleware.RequestID())
 
 	// Create server controller.
 	ctrl := &ServerController{Manager: manager}
@@ -36,6 +39,7 @@ func NewServer(manager *Manager, address string) (*http.Server, error) {
 	e.GET("/", ctrl.HealthCheck)
 	e.GET("/jobs", ctrl.Jobs)
 	e.GET("/api/jobs", ctrl.APIJobs)
+	e.GET("/api/histories", ctrl.APIHistories)
 
 	return &http.Server{
 		Addr:    address,
@@ -56,6 +60,7 @@ func NewSideCarServer(manager *Manager, address string) {
 	e.Use(middleware.CORS())
 	e.Use(middleware.Recover())
 	e.Use(middleware.RemoveTrailingSlash())
+	e.Use(gdkMiddleware.RequestID())
 
 	// Create server controller.
 	ctrl := &ServerController{Manager: manager}
@@ -64,6 +69,7 @@ func NewSideCarServer(manager *Manager, address string) {
 	e.GET("/", ctrl.HealthCheck)
 	e.GET("/jobs", ctrl.Jobs)
 	e.GET("/api/jobs", ctrl.APIJobs)
+	e.GET("/api/histories", ctrl.APIHistories)
 
 	// Overcome issue with socket-master respawning 2nd app,
 	// We will keep trying to run the server.
@@ -103,4 +109,24 @@ func (c *ServerController) Jobs(ctx echo.Context) error {
 func (c *ServerController) APIJobs(ctx echo.Context) error {
 	param := ctx.QueryParam(QueryParamSort)
 	return ctx.JSON(http.StatusOK, c.Manager.GetStatusJSON(param))
+}
+
+// APIHistories returns run histories as json.
+func (c *ServerController) APIHistories(ctx echo.Context) error {
+	var req pagination.Request
+	err := ctx.Bind(&req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	data, err := c.Manager.GetHistoriesJSON(ctx.Request().Context(), req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, data)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/rizalgowandy/cronx/page"
 	"github.com/rizalgowandy/cronx/storage"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
+	"github.com/rizalgowandy/gdk/pkg/pagination"
 	"github.com/rizalgowandy/gdk/pkg/sortx"
 	"github.com/robfig/cron/v3"
 )
@@ -243,7 +244,7 @@ func (m *Manager) GetStatusData(param ...string) []StatusData {
 	return listStatus
 }
 
-// StatusJSON returns all jobs status as map[string]interface.
+// GetStatusJSON returns all jobs status as map[string]interface.
 func (m *Manager) GetStatusJSON(param ...string) map[string]interface{} {
 	return map[string]interface{}{
 		"data": m.GetStatusData(param...),
@@ -274,4 +275,19 @@ func (m *Manager) GetStatusPageData(param ...string) StatusPageData {
 		SortQuery:   sortQuery,
 		SortColumns: sortColumns,
 	}
+}
+
+// GetHistoriesJSON returns run histories as map[string]interface.
+func (m *Manager) GetHistoriesJSON(
+	ctx context.Context,
+	request pagination.Request,
+) (map[string]interface{}, error) {
+	data, err := m.storage.ReadHistories(ctx, request)
+	if err != nil {
+		return nil, errorx.E(err)
+	}
+
+	return map[string]interface{}{
+		"data": data,
+	}, nil
 }

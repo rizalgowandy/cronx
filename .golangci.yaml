@@ -76,7 +76,6 @@ linters:
     - dupl
     - errcheck
     - exhaustive
-    - funlen
     - gochecknoinits
     - gocritic
     - gocyclo
@@ -120,6 +119,7 @@ linters:
   # - prealloc
   # - testpackage
   # - wsl
+  # - funlen
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
@@ -130,11 +130,7 @@ issues:
         - scopelint
         - dupl
         - stylecheck
-        - funlen
         - lll
-    - path: stub
-      linters:
-        - funlen
     - path: api
       linters:
         - dupl
