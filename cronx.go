@@ -280,9 +280,16 @@ func (m *Manager) GetStatusPageData(param ...string) StatusPageData {
 // GetHistories returns run histories.
 func (m *Manager) GetHistories(
 	ctx context.Context,
-	request pagination.Request,
+	req pagination.Request,
 ) (*storage.ReadHistoriesRes, error) {
-	data, err := m.storage.ReadHistories(ctx, request)
+	if req.Order == "" {
+		req.Order = "created_at DESC"
+	}
+	if req.Limit == 0 {
+		req.Limit = 25
+	}
+
+	data, err := m.storage.ReadHistories(ctx, req)
 	if err != nil {
 		return nil, errorx.E(err)
 	}
