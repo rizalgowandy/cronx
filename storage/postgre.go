@@ -7,7 +7,6 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
-	"github.com/rizalgowandy/gdk/pkg/logx"
 	"github.com/rizalgowandy/gdk/pkg/pagination"
 	"github.com/rizalgowandy/gdk/pkg/storage/database"
 	"github.com/rizalgowandy/gdk/pkg/tags"
@@ -157,8 +156,6 @@ func (p *PostgreClient) ReadHistories(
 	if err != nil {
 		return nil, errorx.E(err, fields)
 	}
-
-	logx.DBG(ctx, args, query)
 
 	rows, err := pool.Query(ctx, query, args...)
 	if err != nil {

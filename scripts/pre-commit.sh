@@ -10,18 +10,6 @@
 # List all nonformatted files
 files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$')
 
-# Some files are not formatted with gofmt. Print message.
-nonformatted=$(gofmt -l $files)
-if [ "$nonformatted" ]; then
-  echo >&2 "Go files must be formatted with gofmt. Running:"
-  for fn in $nonformatted; do
-    echo >&2 "  gofmt -w $PWD/$fn"
-    gofmt -w "$PWD/$fn"
-    git add "$PWD/$fn"
-  done
-  printf "\n"
-fi
-
 # Some files are not formatted with golines. Print message.
 nonformatted=$(golines -l $files)
 if [ "$nonformatted" ]; then

@@ -14,6 +14,10 @@ echo -e "\e[32mInstalling:\e[33m golangci-lint for linter.\e[0m"
 command -v golangci-lint 2>/dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.33.0
 echo ""
 
+echo -e "\e[32mInstalling:\e[33m gomodifytags for generating tags.\e[0m"
+command -v gomodifytags 2>/dev/null || go install -v github.com/fatih/gomodifytags@v1.16.0
+echo ""
+
 echo -e "\e[32mSetup:\e[33m pre-commit hook.\e[0m"
 file=.git/hooks/pre-commit
 cp scripts/pre-commit.sh $file
