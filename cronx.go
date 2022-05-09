@@ -277,17 +277,15 @@ func (m *Manager) GetStatusPageData(param ...string) StatusPageData {
 	}
 }
 
-// GetHistoriesJSON returns run histories as map[string]interface.
-func (m *Manager) GetHistoriesJSON(
+// GetHistories returns run histories.
+func (m *Manager) GetHistories(
 	ctx context.Context,
 	request pagination.Request,
-) (map[string]interface{}, error) {
+) (*storage.ReadHistoriesRes, error) {
 	data, err := m.storage.ReadHistories(ctx, request)
 	if err != nil {
 		return nil, errorx.E(err)
 	}
 
-	return map[string]interface{}{
-		"data": data,
-	}, nil
+	return data, nil
 }

@@ -121,7 +121,7 @@ func (c *ServerController) APIHistories(ctx echo.Context) error {
 		})
 	}
 
-	data, err := c.Manager.GetHistoriesJSON(ctx.Request().Context(), req)
+	data, err := c.Manager.GetHistories(ctx.Request().Context(), req)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
