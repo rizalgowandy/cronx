@@ -9,7 +9,6 @@ import (
 	"github.com/rizalgowandy/cronx/page"
 	"github.com/rizalgowandy/cronx/storage"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
-	"github.com/rizalgowandy/gdk/pkg/pagination"
 	"github.com/rizalgowandy/gdk/pkg/sortx"
 	"github.com/robfig/cron/v3"
 )
@@ -267,27 +266,27 @@ func (m *Manager) GetStatusData(param ...string) StatusPageData {
 // GetStatusData returns run histories for history page.
 func (m *Manager) GetHistoryData(
 	ctx context.Context,
-	req pagination.Request,
-) (HistoryData, error) {
-	if req.Order == "" {
-		req.Order = "created_at DESC"
-	}
-	if req.Limit == 0 {
-		req.Limit = 25
+	req *Request,
+) (HistoryPageData, error) {
+	if err := req.Validate(); err != nil {
+		return HistoryPageData{}, errorx.E(err)
 	}
 
 	data, err := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
-		Order:         req.Order,
+		Order:         req.Sort,
 		Limit:         req.Limit,
 		StartingAfter: req.StartingAfter,
 		EndingBefore:  req.EndingBefore,
 	})
 	if err != nil {
-		return HistoryData{}, errorx.E(err)
+		if errorx.Is(err, errorx.CodeNotFound) {
+			return HistoryPageData{}, nil
+		}
+		return HistoryPageData{}, errorx.E(err)
 	}
 
-	paginationResp := pagination.Response{
-		Order:         req.Order,
+	paginationResp := Response{
+		Sort:          req.Sort,
 		StartingAfter: req.StartingAfter,
 		EndingBefore:  req.EndingBefore,
 		Total:         len(data),
@@ -302,9 +301,16 @@ func (m *Manager) GetHistoryData(
 			data[0].ID,
 			data[len(data)-1].ID,
 		}
-		paginationResp.NextURI = generateURI(paginationResp.NextPageRequest().QueryParams())
+
+		if next, _ := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
+			Order:         req.Sort,
+			Limit:         1,
+			StartingAfter: paginationResp.NextPageCursor(),
+		}); len(next) > 0 {
+			paginationResp.NextURI = paginationResp.NextPageRequest().URI(&req.url)
+		}
 		if req.StartingAfter != nil {
-			paginationResp.PreviousURI = generateURI(paginationResp.PrevPageRequest().QueryParams())
+			paginationResp.PreviousURI = paginationResp.PrevPageRequest().URI(&req.url)
 		}
 	}
 
@@ -314,7 +320,7 @@ func (m *Manager) GetHistoryData(
 		data[k].FinishedAt = data[k].FinishedAt.In(m.location)
 	}
 
-	return HistoryData{
+	return HistoryPageData{
 		Data:       data,
 		Pagination: paginationResp,
 	}, nil
