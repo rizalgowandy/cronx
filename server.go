@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rizalgowandy/cronx/page"
-	"github.com/rizalgowandy/cronx/pagination"
 	gdkMiddleware "github.com/rizalgowandy/gdk/pkg/httpx/echo/middleware"
 )
 
@@ -122,15 +121,16 @@ func (c *ServerController) APIJobs(ctx echo.Context) error {
 
 // APIHistories returns run histories as json.
 func (c *ServerController) APIHistories(ctx echo.Context) error {
-	var req pagination.Request
+	var req Request
 	err := ctx.Bind(&req)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
+	req.url = *ctx.Request().URL
 
-	data, err := c.Manager.GetHistoryData(ctx.Request().Context(), req)
+	data, err := c.Manager.GetHistoryData(ctx.Request().Context(), &req)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

@@ -26,5 +26,4 @@ generate: # generate all go generate command inside internal package.
 
 .PHONY: run
 run: # run example.
-	@docker-compose up -d
 	@air -c .air.toml

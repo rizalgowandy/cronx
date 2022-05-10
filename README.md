@@ -30,6 +30,12 @@ import "github.com/rizalgowandy/cronx"
 
 Check the example [here](example/main.go).
 
+Run docker:
+
+```shell
+docker-compose up
+```
+
 Run the binary:
 
 ```shell

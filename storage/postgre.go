@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v4"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
 	"github.com/rizalgowandy/gdk/pkg/storage/database"
 	"github.com/rizalgowandy/gdk/pkg/tags"
@@ -40,6 +41,7 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, req *History) error {
 			started_at,
 			finished_at,
 			latency,
+			latency_text,
 			error,
 			metadata
 		)
@@ -53,7 +55,8 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, req *History) error {
 		   $7,
 		   $8,
 		   $9,
-		   $10
+		   $10,
+		   $11
 		)
 		;
 	`
@@ -69,6 +72,7 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, req *History) error {
 		req.StartedAt,
 		req.FinishedAt,
 		req.Latency,
+		req.LatencyText,
 		req.Error,
 		req.Metadata,
 	)
@@ -124,6 +128,7 @@ func (p *PostgreClient) ReadHistories(ctx context.Context, req *HistoryFilter) (
 			"started_at",
 			"finished_at",
 			"latency",
+			"latency_text",
 			"error",
 			"metadata",
 		).
@@ -146,6 +151,9 @@ func (p *PostgreClient) ReadHistories(ctx context.Context, req *HistoryFilter) (
 
 	rows, err := pool.Query(ctx, query, args...)
 	if err != nil {
+		if errorx.Match(err, pgx.ErrNoRows) {
+			return nil, errorx.E(err, fields, errorx.CodeNotFound)
+		}
 		return nil, errorx.E(err, fields)
 	}
 	defer rows.Close()
@@ -163,6 +171,7 @@ func (p *PostgreClient) ReadHistories(ctx context.Context, req *HistoryFilter) (
 			&cur.StartedAt,
 			&cur.FinishedAt,
 			&cur.Latency,
+			&cur.LatencyText,
 			&cur.Error,
 			&cur.Metadata,
 		); err != nil {

@@ -14,8 +14,8 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-//go:generate gomodifytags -all --skip-unexported -w -file job.go -remove-tags db,json
-//go:generate gomodifytags -all --skip-unexported -w -file job.go -add-tags db,json
+//go:generate gomodifytags -all --quiet -w -file job.go -clear-tags
+//go:generate gomodifytags -all --quiet --skip-unexported -w -file job.go -add-tags json
 
 type JobItf interface {
 	Run(ctx context.Context) error
@@ -66,19 +66,19 @@ func GetJobName(job JobItf) (name string) {
 }
 
 type JobMetadata struct {
-	EntryID    cron.EntryID `db:"entry_id" json:"entry_id"`
-	Wave       int64        `db:"wave" json:"wave"`
-	TotalWave  int64        `db:"total_wave" json:"total_wave"`
-	IsLastWave bool         `db:"is_last_wave" json:"is_last_wave"`
+	EntryID    cron.EntryID `json:"entry_id"`
+	Wave       int64        `json:"wave"`
+	TotalWave  int64        `json:"total_wave"`
+	IsLastWave bool         `json:"is_last_wave"`
 }
 
 type Job struct {
 	JobMetadata
 
-	Name    string     `db:"name" json:"name"`
-	Status  StatusCode `db:"status" json:"status"`
-	Latency string     `db:"latency" json:"latency"`
-	Error   string     `db:"error" json:"error"`
+	Name    string     `json:"name"`
+	Status  StatusCode `json:"status"`
+	Latency string     `json:"latency"`
+	Error   string     `json:"error"`
 
 	manager *Manager
 	inner   JobItf
@@ -147,14 +147,16 @@ func (j *Job) Run() {
 
 func (j *Job) RecordHistory(ctx context.Context, start, finish time.Time) {
 	history := &storage.History{
-		ID:         logx.GetRequestID(ctx),
-		CreatedAt:  time.Now(),
-		Name:       j.Name,
-		Status:     j.Status.String(),
-		StatusCode: int64(j.status),
-		StartedAt:  start,
-		FinishedAt: finish,
-		Latency:    j.latency,
+		ID:          logx.GetRequestID(ctx),
+		CreatedAt:   time.Now(),
+		Name:        j.Name,
+		Status:      j.Status.String(),
+		StatusCode:  int64(j.status),
+		StartedAt:   start,
+		FinishedAt:  finish,
+		Latency:     j.latency,
+		LatencyText: j.Latency,
+		Error:       storage.ErrorDetail{},
 		Metadata: storage.HistoryMetadata{
 			MachineID: netx.GetIPv4(),
 			EntryID:   int64(j.JobMetadata.EntryID),
