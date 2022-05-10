@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rizalgowandy/cronx/page"
+	"github.com/rizalgowandy/cronx/pagination"
 	gdkMiddleware "github.com/rizalgowandy/gdk/pkg/httpx/echo/middleware"
-	"github.com/rizalgowandy/gdk/pkg/pagination"
 )
 
 const (
