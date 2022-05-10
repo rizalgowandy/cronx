@@ -1,11 +1,5 @@
 package cronx
 
-import (
-	"time"
-
-	"github.com/robfig/cron/v3"
-)
-
 // StatusCode describes current job status.
 type StatusCode string
 
@@ -31,21 +25,3 @@ const (
 	statusRunning uint32 = 3
 	statusError   uint32 = 4
 )
-
-// StatusData defines current job status.
-type StatusData struct {
-	// ID is unique per job.
-	ID cron.EntryID `json:"id,omitempty"`
-	// Job defines current job.
-	Job *Job `json:"job,omitempty"`
-	// Next defines the next schedule to execute current job.
-	Next time.Time `json:"next_run,omitempty"`
-	// Prev defines the last run of the current job.
-	Prev time.Time `json:"prev_run,omitempty"`
-}
-
-type StatusPageData struct {
-	StatusData  []StatusData
-	SortQuery   string
-	SortColumns map[string]string
-}

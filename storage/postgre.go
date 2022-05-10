@@ -2,12 +2,10 @@ package storage
 
 import (
 	"context"
-	"net/url"
 	"sync"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
-	"github.com/rizalgowandy/gdk/pkg/pagination"
 	"github.com/rizalgowandy/gdk/pkg/storage/database"
 	"github.com/rizalgowandy/gdk/pkg/tags"
 )
@@ -108,10 +106,7 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, req *History) error {
 	return nil
 }
 
-func (p *PostgreClient) ReadHistories(
-	ctx context.Context,
-	req pagination.Request,
-) (*ReadHistoriesRes, error) {
+func (p *PostgreClient) ReadHistories(ctx context.Context, req *HistoryFilter) ([]History, error) {
 	fields := errorx.Fields{tags.Request: req}
 
 	pool, err := p.db.GetReader(ctx)
@@ -119,15 +114,7 @@ func (p *PostgreClient) ReadHistories(
 		return nil, errorx.E(err, fields)
 	}
 
-	var sq squirrel.SelectBuilder
-	if req.Order == "" {
-		req.Order = "created_at DESC"
-	}
-	if req.Limit == 0 {
-		req.Limit = 25
-	}
-
-	sq = squirrel.
+	sq := squirrel.
 		Select(
 			"id",
 			"created_at",
@@ -185,39 +172,5 @@ func (p *PostgreClient) ReadHistories(
 		data = append(data, cur)
 	}
 
-	page := pagination.Response{
-		Order:         req.Order,
-		StartingAfter: req.StartingAfter,
-		EndingBefore:  req.EndingBefore,
-		Total:         len(data),
-		Yielded:       len(data),
-		Limit:         req.Limit,
-		PreviousURI:   nil,
-		NextURI:       nil,
-		CursorRange:   nil,
-	}
-	if len(data) > 0 {
-		page.CursorRange = []string{
-			data[0].ID,
-			data[len(data)-1].ID,
-		}
-		page.NextURI = generateURI(page.NextPageRequest().QueryParams())
-		if req.StartingAfter != nil {
-			page.PreviousURI = generateURI(page.PrevPageRequest().QueryParams())
-		}
-	}
-
-	return &ReadHistoriesRes{
-		Data:       data,
-		Pagination: page,
-	}, nil
-}
-
-func generateURI(param map[string]string) *string {
-	val := url.Values{}
-	for k, v := range param {
-		val.Add(k, v)
-	}
-	res := val.Encode()
-	return &res
+	return data, nil
 }

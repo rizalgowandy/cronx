@@ -183,8 +183,22 @@ func (m *Manager) GetInfo() map[string]interface{} {
 	}
 }
 
-// GetStatusData returns all jobs status.
-func (m *Manager) GetStatusData(param ...string) []StatusData {
+// GetStatusData returns all jobs status for status page.
+func (m *Manager) GetStatusData(param ...string) StatusPageData {
+	// Default sorting is by id in ascending order.
+	if len(param) == 0 {
+		param = append(param, page.ColumnID)
+	}
+
+	// Create sorting.
+	sortQuery := param[0]
+	sorts := sortx.NewSorts(sortQuery)
+	sortColumns := make(map[string]string)
+	for _, v := range sorts {
+		sortColumns[string(v.Key)] = string(v.Order)
+	}
+
+	// Get status data.
 	entries := m.commander.Entries()
 	totalEntries := len(entries)
 
@@ -241,47 +255,20 @@ func (m *Manager) GetStatusData(param ...string) []StatusData {
 		}
 	}
 
-	return listStatus
-}
-
-// GetStatusJSON returns all jobs status as map[string]interface.
-func (m *Manager) GetStatusJSON(param ...string) map[string]interface{} {
-	return map[string]interface{}{
-		"data": m.GetStatusData(param...),
-	}
-}
-
-// GetStatusPageData returns all jobs status for status page.
-func (m *Manager) GetStatusPageData(param ...string) StatusPageData {
-	var (
-		sortQuery   string
-		sortColumns map[string]string
-	)
-
-	// Default sorting is by id in ascending order.
-	if len(param) == 0 {
-		param = []string{page.ColumnID}
-	}
-
-	sortQuery = param[0]
-	sorts := sortx.NewSorts(sortQuery)
-	sortColumns = make(map[string]string)
-	for _, v := range sorts {
-		sortColumns[string(v.Key)] = string(v.Order)
-	}
-
 	return StatusPageData{
-		StatusData:  m.GetStatusData(param...),
-		SortQuery:   sortQuery,
-		SortColumns: sortColumns,
+		Data: listStatus,
+		Sort: Sort{
+			Query:   sortQuery,
+			Columns: sortColumns,
+		},
 	}
 }
 
-// GetHistories returns run histories.
-func (m *Manager) GetHistories(
+// GetStatusData returns run histories for history page.
+func (m *Manager) GetHistoryData(
 	ctx context.Context,
 	req pagination.Request,
-) (*storage.ReadHistoriesRes, error) {
+) (HistoryData, error) {
 	if req.Order == "" {
 		req.Order = "created_at DESC"
 	}
@@ -289,10 +276,46 @@ func (m *Manager) GetHistories(
 		req.Limit = 25
 	}
 
-	data, err := m.storage.ReadHistories(ctx, req)
+	data, err := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
+		Order:         req.Order,
+		Limit:         req.Limit,
+		StartingAfter: req.StartingAfter,
+		EndingBefore:  req.EndingBefore,
+	})
 	if err != nil {
-		return nil, errorx.E(err)
+		return HistoryData{}, errorx.E(err)
 	}
 
-	return data, nil
+	paginationResp := pagination.Response{
+		Order:         req.Order,
+		StartingAfter: req.StartingAfter,
+		EndingBefore:  req.EndingBefore,
+		Total:         len(data),
+		Yielded:       len(data),
+		Limit:         req.Limit,
+		PreviousURI:   nil,
+		NextURI:       nil,
+		CursorRange:   nil,
+	}
+	if len(data) > 0 {
+		paginationResp.CursorRange = []string{
+			data[0].ID,
+			data[len(data)-1].ID,
+		}
+		paginationResp.NextURI = generateURI(paginationResp.NextPageRequest().QueryParams())
+		if req.StartingAfter != nil {
+			paginationResp.PreviousURI = generateURI(paginationResp.PrevPageRequest().QueryParams())
+		}
+	}
+
+	for k := range data {
+		data[k].CreatedAt = data[k].CreatedAt.In(m.location)
+		data[k].StartedAt = data[k].StartedAt.In(m.location)
+		data[k].FinishedAt = data[k].FinishedAt.In(m.location)
+	}
+
+	return HistoryData{
+		Data:       data,
+		Pagination: paginationResp,
+	}, nil
 }
