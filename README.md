@@ -8,15 +8,40 @@
 
 Cronx is a library to manage cron jobs, a cron manager library. It includes a live monitoring of current schedule and state of active jobs that can be outputted as JSON or HTML template.
 
+## Installation
+
+In order to install cronx package, you need to install Go and set your Go workspace first.
+
+You first need Go installed (version 1.14+ is required), then you can use the below Go command to install cronx.
+
+```shell
+go get -u -v github.com/rizalgowandy/cronx
+```
+
+Import it in your code:
+
+```go
+package main
+
+import "github.com/rizalgowandy/cronx"
+```
+
 ## Quick Start
 
 Check the example [here](example/main.go).
 
-Run the binary. Then, browse to:
+Run the binary:
+
+```shell
+make run | jq -R -r '. as $line | try fromjson catch $line'
+```
+
+Then, browse to:
 
 - http://localhost:9001 => see server health status.
-- http://localhost:9001/jobs => see the html page.
-- http://localhost:9001/api/jobs => see the json response.
+- http://localhost:9001/jobs => see the current job status as UI response.
+- http://localhost:9001/api/jobs => see the current job status as JSON response.
+- http://localhost:9001/api/histories => see previous job run histories as JSON response.
 
 ![cronx](docs/screenshot/5_status_page.png)
 
@@ -118,6 +143,9 @@ Here the list of commonly used commands.
 //  0 */10 * * * * => every 10m
 Schedule(spec string, job JobItf) error
 
+// ScheduleFunc adds a func to the Cron to be run on the given schedule.
+ScheduleFunc(spec, name string, cmd func (ctx context.Context) error) error
+
 // Schedules sets a job to run multiple times at specific time.
 // Symbol */,-? should never be used as separator character.
 // These symbols are reserved for cron specification.
@@ -127,6 +155,9 @@ Schedule(spec string, job JobItf) error
 //  Separator	: "#"
 //  This input schedules the job to run 3 times.
 Schedules(spec, separator string, job JobItf) error
+
+// SchedulesFunc adds a func to the Cron to be run on the given schedules.
+SchedulesFunc(spec, separator, name string, cmd func (ctx context.Context) error) error
 ```
 
 Go to [here](cronx.go) to see the list of available commands.
@@ -153,7 +184,7 @@ func main() {
 	// An example using gin as the router.
 	r := gin.Default()
 	r.GET("/custom-path", func(c *gin.Context) {
-		c.JSON(http.StatusOK, manager.GetStatusJSON())
+		c.JSON(http.StatusOK, manager.GetInfo())
 	})
 
 	// Start your own server.
@@ -182,7 +213,7 @@ func main() {
 	index, _ := page.GetStatusTemplate()
 	e.GET("/jobs", func(context echo.Context) error {
 		// Serve the template to the writer and pass the current status data.
-		return index.Execute(context.Response().Writer, manager.GetStatusPageData())
+		return index.Execute(context.Response().Writer, manager.GetStatusData())
 	})
 }
 ```
