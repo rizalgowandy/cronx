@@ -7,26 +7,26 @@ import (
 )
 
 //go:generate gomodifytags -all --skip-unexported -w -file cronx_status.go -remove-tags db,json
-//go:generate gomodifytags -all --skip-unexported -w -file cronx_status.go -add-tags db,json -add-options json=omitempty
+//go:generate gomodifytags -all --skip-unexported -w -file cronx_status.go -add-tags db,json
 
 // StatusData defines current job status.
 type StatusData struct {
 	// ID is unique per job.
-	ID cron.EntryID `db:"id" json:"id,omitempty"`
+	ID cron.EntryID `db:"id" json:"id"`
 	// Job defines current job.
-	Job *Job `db:"job" json:"job,omitempty"`
+	Job *Job `db:"job" json:"job"`
 	// Next defines the next schedule to execute current job.
-	Next time.Time `db:"next" json:"next,omitempty"`
+	Next time.Time `db:"next" json:"next"`
 	// Prev defines the last run of the current job.
-	Prev time.Time `db:"prev" json:"prev,omitempty"`
+	Prev time.Time `db:"prev" json:"prev"`
 }
 
 type StatusPageData struct {
-	Data []StatusData `db:"data" json:"data,omitempty"`
-	Sort Sort         `db:"sort" json:"sort,omitempty"`
+	Data []StatusData `db:"data" json:"data"`
+	Sort Sort         `db:"sort" json:"sort"`
 }
 
 type Sort struct {
-	Query   string            `db:"query" json:"query,omitempty"`
-	Columns map[string]string `db:"columns" json:"columns,omitempty"`
+	Query   string            `db:"query" json:"query"`
+	Columns map[string]string `db:"columns" json:"columns"`
 }

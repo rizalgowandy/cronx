@@ -10,7 +10,7 @@ import (
 )
 
 //go:generate gomodifytags -all --skip-unexported -w -file storage.go -remove-tags db,json
-//go:generate gomodifytags -all --skip-unexported -w -file storage.go -add-tags db,json -add-options json=omitempty
+//go:generate gomodifytags -all --skip-unexported -w -file storage.go -add-tags db,json
 
 type Client interface {
 	WriteHistory(ctx context.Context, req *History) error
@@ -18,24 +18,24 @@ type Client interface {
 }
 
 type History struct {
-	ID         string          `db:"id"          json:"id,omitempty"`
-	CreatedAt  time.Time       `db:"created_at"  json:"created_at,omitempty"`
-	Name       string          `db:"name"        json:"name,omitempty"`
-	Status     string          `db:"status"      json:"status,omitempty"`
-	StatusCode int64           `db:"status_code" json:"status_code,omitempty"`
-	StartedAt  time.Time       `db:"started_at"  json:"started_at,omitempty"`
-	FinishedAt time.Time       `db:"finished_at" json:"finished_at,omitempty"`
-	Latency    int64           `db:"latency"     json:"latency,omitempty"`
-	Error      ErrorDetail     `db:"error"       json:"error,omitempty"`
-	Metadata   HistoryMetadata `db:"metadata"    json:"metadata,omitempty"`
+	ID         string          `db:"id" json:"id"`
+	CreatedAt  time.Time       `db:"created_at" json:"created_at"`
+	Name       string          `db:"name" json:"name"`
+	Status     string          `db:"status" json:"status"`
+	StatusCode int64           `db:"status_code" json:"status_code"`
+	StartedAt  time.Time       `db:"started_at" json:"started_at"`
+	FinishedAt time.Time       `db:"finished_at" json:"finished_at"`
+	Latency    int64           `db:"latency" json:"latency"`
+	Error      ErrorDetail     `db:"error" json:"error"`
+	Metadata   HistoryMetadata `db:"metadata" json:"metadata"`
 }
 
 type HistoryMetadata struct {
-	MachineID  string `db:"machine_id"   json:"machine_id,omitempty"`
-	EntryID    int64  `db:"entry_id"     json:"entry_id,omitempty"`
-	Wave       int64  `db:"wave"         json:"wave,omitempty"`
-	TotalWave  int64  `db:"total_wave"   json:"total_wave,omitempty"`
-	IsLastWave bool   `db:"is_last_wave" json:"is_last_wave,omitempty"`
+	MachineID  string `db:"machine_id" json:"machine_id"`
+	EntryID    int64  `db:"entry_id" json:"entry_id"`
+	Wave       int64  `db:"wave" json:"wave"`
+	TotalWave  int64  `db:"total_wave" json:"total_wave"`
+	IsLastWave bool   `db:"is_last_wave" json:"is_last_wave"`
 }
 
 func (h *HistoryMetadata) Value() (driver.Value, error) {
@@ -52,13 +52,13 @@ func (h *HistoryMetadata) Scan(value interface{}) error {
 }
 
 type ErrorDetail struct {
-	Err          string              `db:"err"           json:"err,omitempty"`
-	Code         errorx.Code         `db:"code"          json:"code,omitempty"`
-	Fields       errorx.Fields       `db:"fields"        json:"fields,omitempty"`
-	OpTraces     []errorx.Op         `db:"op_traces"     json:"op_traces,omitempty"`
-	Message      errorx.Message      `db:"message"       json:"message,omitempty"`
-	Line         errorx.Line         `db:"line"          json:"line,omitempty"`
-	MetricStatus errorx.MetricStatus `db:"metric_status" json:"metric_status,omitempty"`
+	Err          string              `db:"err" json:"err"`
+	Code         errorx.Code         `db:"code" json:"code"`
+	Fields       errorx.Fields       `db:"fields" json:"fields"`
+	OpTraces     []errorx.Op         `db:"op_traces" json:"op_traces"`
+	Message      errorx.Message      `db:"message" json:"message"`
+	Line         errorx.Line         `db:"line" json:"line"`
+	MetricStatus errorx.MetricStatus `db:"metric_status" json:"metric_status"`
 }
 
 func (e *ErrorDetail) Value() (driver.Value, error) {
@@ -75,8 +75,8 @@ func (e *ErrorDetail) Scan(value interface{}) error {
 }
 
 type HistoryFilter struct {
-	Order         string  `db:"order"          json:"order,omitempty"`
-	Limit         int     `db:"limit"          json:"limit,omitempty"`
-	StartingAfter *string `db:"starting_after" json:"starting_after,omitempty"`
-	EndingBefore  *string `db:"ending_before"  json:"ending_before,omitempty"`
+	Order         string  `db:"order" json:"order"`
+	Limit         int     `db:"limit" json:"limit"`
+	StartingAfter *string `db:"starting_after" json:"starting_after"`
+	EndingBefore  *string `db:"ending_before" json:"ending_before"`
 }
