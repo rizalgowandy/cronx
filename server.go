@@ -101,14 +101,23 @@ func (c *ServerController) Jobs(ctx echo.Context) error {
 			"error": err.Error(),
 		})
 	}
-	param := ctx.QueryParam(QueryParamSort)
-	return index.Execute(ctx.Response().Writer, c.Manager.GetStatusPageData(param))
+
+	var param []string
+	querySort := ctx.QueryParam(QueryParamSort)
+	if querySort != "" {
+		param = append(param, querySort)
+	}
+	return index.Execute(ctx.Response().Writer, c.Manager.GetStatusData(param...))
 }
 
 // APIJobs returns job status as json.
 func (c *ServerController) APIJobs(ctx echo.Context) error {
-	param := ctx.QueryParam(QueryParamSort)
-	return ctx.JSON(http.StatusOK, c.Manager.GetStatusJSON(param))
+	var param []string
+	querySort := ctx.QueryParam(QueryParamSort)
+	if querySort != "" {
+		param = append(param, querySort)
+	}
+	return ctx.JSON(http.StatusOK, c.Manager.GetStatusData(param...))
 }
 
 // APIHistories returns run histories as json.
@@ -121,7 +130,7 @@ func (c *ServerController) APIHistories(ctx echo.Context) error {
 		})
 	}
 
-	data, err := c.Manager.GetHistories(ctx.Request().Context(), req)
+	data, err := c.Manager.GetHistoryData(ctx.Request().Context(), req)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

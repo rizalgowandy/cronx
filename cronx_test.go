@@ -2,8 +2,6 @@ package cronx
 
 import (
 	"context"
-	"reflect"
-	"sync"
 	"testing"
 	"time"
 
@@ -505,114 +503,6 @@ func TestManager_GetInfo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := NewManager()
 			got := c.GetInfo()
-			assert.NotNil(t, got)
-		})
-	}
-}
-
-func TestManager_GetStatusData(t *testing.T) {
-	type fields struct {
-		Commander   *cron.Cron
-		Interceptor Interceptor
-		Parser      cron.Parser
-		DownJobs    []*Job
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   []StatusData
-	}{
-		{
-			name: "Success",
-			fields: fields{
-				Commander:   cron.New(),
-				Interceptor: nil,
-				Parser:      cron.Parser{},
-				DownJobs: []*Job{
-					{
-						Name:    "Cron 1",
-						Status:  "DOWN",
-						Latency: "",
-						Error:   "",
-						inner:   nil,
-						status:  statusDown,
-						running: sync.Mutex{},
-					},
-				},
-			},
-			want: []StatusData{
-				{
-					ID: 0,
-					Job: &Job{
-						Name:    "Cron 1",
-						Status:  "DOWN",
-						Latency: "",
-						Error:   "",
-						inner:   nil,
-						status:  statusDown,
-						running: sync.Mutex{},
-					},
-					Next: time.Time{},
-					Prev: time.Time{},
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Manager{
-				commander:   tt.fields.Commander,
-				interceptor: tt.fields.Interceptor,
-				parser:      tt.fields.Parser,
-				downJobs:    tt.fields.DownJobs,
-			}
-			if got := c.GetStatusData(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetStatusData() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestManager_GetStatusJSON(t *testing.T) {
-	type fields struct {
-		Commander   *cron.Cron
-		Interceptor Interceptor
-		Parser      cron.Parser
-		DownJobs    []*Job
-	}
-	tests := []struct {
-		name   string
-		fields fields
-	}{
-		{
-			name: "Success",
-			fields: fields{
-				Commander:   cron.New(),
-				Interceptor: nil,
-				Parser:      cron.Parser{},
-				DownJobs: []*Job{
-					{
-						Name:    "Cron 1",
-						Status:  "DOWN",
-						Latency: "",
-						Error:   "",
-						inner:   nil,
-						status:  statusDown,
-						running: sync.Mutex{},
-					},
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Manager{
-				commander:   tt.fields.Commander,
-				interceptor: tt.fields.Interceptor,
-				parser:      tt.fields.Parser,
-				downJobs:    tt.fields.DownJobs,
-			}
-			got := c.GetStatusJSON()
 			assert.NotNil(t, got)
 		})
 	}

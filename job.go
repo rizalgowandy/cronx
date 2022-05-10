@@ -14,6 +14,9 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+//go:generate gomodifytags -all --skip-unexported -w -file job.go -remove-tags db,json
+//go:generate gomodifytags -all --skip-unexported -w -file job.go -add-tags db,json
+
 type JobItf interface {
 	Run(ctx context.Context) error
 }
@@ -63,19 +66,19 @@ func GetJobName(job JobItf) (name string) {
 }
 
 type JobMetadata struct {
-	EntryID    cron.EntryID `json:"entry_id"`
-	Wave       int64        `json:"wave"`
-	TotalWave  int64        `json:"total_wave"`
-	IsLastWave bool         `json:"is_last_wave"`
+	EntryID    cron.EntryID `db:"entry_id" json:"entry_id"`
+	Wave       int64        `db:"wave" json:"wave"`
+	TotalWave  int64        `db:"total_wave" json:"total_wave"`
+	IsLastWave bool         `db:"is_last_wave" json:"is_last_wave"`
 }
 
 type Job struct {
 	JobMetadata
 
-	Name    string     `json:"name"`
-	Status  StatusCode `json:"status"`
-	Latency string     `json:"latency"`
-	Error   string     `json:"error"`
+	Name    string     `db:"name" json:"name"`
+	Status  StatusCode `db:"status" json:"status"`
+	Latency string     `db:"latency" json:"latency"`
+	Error   string     `db:"error" json:"error"`
 
 	manager *Manager
 	inner   JobItf

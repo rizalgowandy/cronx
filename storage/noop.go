@@ -2,8 +2,6 @@ package storage
 
 import (
 	"context"
-
-	"github.com/rizalgowandy/gdk/pkg/pagination"
 )
 
 // NewNoopClient returns a no operation client.
@@ -17,9 +15,6 @@ func (n NoopClient) WriteHistory(_ context.Context, _ *History) error {
 	return nil
 }
 
-func (n NoopClient) ReadHistories(
-	_ context.Context,
-	_ pagination.Request,
-) (*ReadHistoriesRes, error) {
-	return &ReadHistoriesRes{}, nil
+func (n NoopClient) ReadHistories(_ context.Context, _ *HistoryFilter) ([]History, error) {
+	return nil, nil
 }
