@@ -12,7 +12,12 @@ Cronx is a library to manage cron jobs, a cron manager library. It includes a li
 
 Check the example [here](example/main.go).
 
-Run the binary. Then, browse to:
+Run the binary:
+```shell
+make run | jq -R -r '. as $line | try fromjson catch $line'
+```
+
+Then, browse to:
 
 - http://localhost:9001 => see server health status.
 - http://localhost:9001/jobs => see the html page.

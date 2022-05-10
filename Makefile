@@ -23,3 +23,8 @@ build: # ensure all binary can be build.
 .PHONY: generate
 generate: # generate all go generate command inside internal package.
 	@go generate -v ./...
+
+.PHONY: run
+run: # run example.
+	@docker-compose up -d
+	@air -c .air.toml
