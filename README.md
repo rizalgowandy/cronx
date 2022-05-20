@@ -28,7 +28,7 @@ import "github.com/rizalgowandy/cronx"
 
 ## Quick Start
 
-Check the example [here](example/main.go).
+Check the example [here](example/2-storage/main.go).
 
 Run docker:
 

@@ -18,12 +18,17 @@ test: # run all tests.
 .PHONY: build
 build: # ensure all binary can be build.
 	@go build -o bin/cronx && rm bin/cronx
-	@go build -o bin/example example/main.go && rm bin/example
+	@go build -o bin/simplest example/1-simplest/main.go && rm bin/simplest
+	@go build -o bin/storage example/2-storage/main.go && rm bin/storage
 
 .PHONY: generate
 generate: # generate all go generate command inside internal package.
 	@go generate -v ./...
 
-.PHONY: run
-run: # run example.
-	@air -c .air.toml
+.PHONY: run-simplest
+run-simplest: # run example 1-simplest.
+	@air -c ./scripts/.air-simplest.toml
+
+.PHONY: run-storage
+run-storage: # run example 2-storage.
+	@air -c ./scripts/.air-storage.toml
