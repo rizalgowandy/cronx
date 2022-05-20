@@ -101,22 +101,18 @@ func (c *ServerController) Jobs(ctx echo.Context) error {
 		})
 	}
 
-	var param []string
-	querySort := ctx.QueryParam(QueryParamSort)
-	if querySort != "" {
-		param = append(param, querySort)
-	}
-	return index.Execute(ctx.Response().Writer, c.Manager.GetStatusData(param...))
+	return index.Execute(
+		ctx.Response().Writer,
+		c.Manager.GetStatusData(ctx.QueryParam(QueryParamSort)),
+	)
 }
 
 // APIJobs returns job status as json.
 func (c *ServerController) APIJobs(ctx echo.Context) error {
-	var param []string
-	querySort := ctx.QueryParam(QueryParamSort)
-	if querySort != "" {
-		param = append(param, querySort)
-	}
-	return ctx.JSON(http.StatusOK, c.Manager.GetStatusData(param...))
+	return ctx.JSON(
+		http.StatusOK,
+		c.Manager.GetStatusData(ctx.QueryParam(QueryParamSort)),
+	)
 }
 
 // APIHistories returns run histories as json.

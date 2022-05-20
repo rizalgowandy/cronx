@@ -7,11 +7,11 @@ tmp_dir = "bin"
 
 [build]
 # Just plain old shell command. You could use `make` as well.
-cmd = "go build -o ./bin/main ./example"
+cmd = "go build -o ./bin/simplest ./example/1-simplest"
 # Binary file yields from `cmd`.
-bin = "bin/main"
+bin = "bin/simplest"
 # Customize binary.
-full_bin = "./bin/main"
+full_bin = "./bin/simplest"
 # Watch these filename extensions.
 include_ext = ["go", "json"]
 # Ignore these filename extensions or directories.
@@ -21,7 +21,7 @@ include_dir = []
 # Exclude files.
 exclude_file = []
 # This log file places in your tmp_dir.
-log = "main.air.log"
+log = "simplest.air.log"
 # It's not necessary to trigger build each time file changes if it's too frequent.
 delay = 1000 # ms
 # Stop running old binary when build errors occur.

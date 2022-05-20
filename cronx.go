@@ -183,18 +183,10 @@ func (m *Manager) GetInfo() map[string]interface{} {
 }
 
 // GetStatusData returns all jobs status for status page.
-func (m *Manager) GetStatusData(param ...string) StatusPageData {
+func (m *Manager) GetStatusData(sortQuery string) StatusPageData {
 	// Default sorting is by id in ascending order.
-	if len(param) == 0 {
-		param = append(param, page.ColumnID)
-	}
-
-	// Create sorting.
-	sortQuery := param[0]
-	sorts := sortx.NewSorts(sortQuery)
-	sortColumns := make(map[string]string)
-	for _, v := range sorts {
-		sortColumns[string(v.Key)] = string(v.Order)
+	if sortQuery == "" {
+		sortQuery = page.ColumnID
 	}
 
 	// Get status data.
@@ -210,12 +202,13 @@ func (m *Manager) GetStatusData(param ...string) StatusPageData {
 		data[k].Prev = v.Prev
 	}
 
-	if len(param) > 0 {
-		sorts := sortx.NewSorts(param[0])
-		for _, v := range sorts {
-			sorter := NewStatusDataSorter(v.Key, v.Order, data)
-			sort.Sort(sorter)
-		}
+	// Sort data.
+	sorts := sortx.NewSorts(sortQuery)
+	sortColumns := make(map[string]string)
+	for _, v := range sorts {
+		sortColumns[string(v.Key)] = string(v.Order)
+		sorter := NewStatusDataSorter(v.Key, v.Order, data)
+		sort.Sort(sorter)
 	}
 
 	downs := m.downJobs
