@@ -46,6 +46,9 @@ func main() {
 		logx.ERR(ctx, errorx.E(err), "register subscription must success")
 	}
 
+	// Get all current registered job.
+	logx.INF(ctx, logx.KV{"entries": manager.GetEntries()}, "current jobs")
+
 	// ===========================
 	// Start Main Server
 	// ===========================

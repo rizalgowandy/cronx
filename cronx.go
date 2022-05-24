@@ -22,6 +22,7 @@ var (
 	DefaultInterceptors = Chain()
 	DefaultLocation     = time.Local
 	DefaultStorage      = storage.NewNoopClient()
+	DefaultAlerter      = NewAlerter()
 )
 
 // NewManager create a command controller with a specific config.
@@ -36,6 +37,7 @@ func NewManager(opts ...Option) *Manager {
 		autoStart:            true,
 		highPriorityDownJobs: true,
 		storage:              DefaultStorage,
+		alerter:              DefaultAlerter,
 	}
 	for _, opt := range opts {
 		opt(manager)
@@ -77,6 +79,8 @@ type Manager struct {
 	highPriorityDownJobs bool
 	// storage determines where do we record and read the history data.
 	storage storage.Client
+	// alerter sends an alert on certain unwanted event.
+	alerter AlerterItf
 }
 
 // Schedule sets a job to run at specific time.
