@@ -110,6 +110,10 @@ func (j *Job) Run() {
 	start := time.Now()
 	ctx := logx.NewContext()
 
+	prev := j.manager.GetEntry(j.EntryID).Prev
+	next := j.manager.GetEntry(j.EntryID).Next
+	maxLatency := next.Sub(prev)
+
 	// Lock current process.
 	j.running.Lock()
 	defer j.running.Unlock()
@@ -143,6 +147,11 @@ func (j *Job) Run() {
 
 	// Record history.
 	j.RecordHistory(ctx, start, finish)
+
+	// Send alert if high latency is detected.
+	if latency > maxLatency {
+		j.manager.alerter.NotifyHighLatency(ctx, j, prev, next, latency, maxLatency)
+	}
 }
 
 func (j *Job) RecordHistory(ctx context.Context, start, finish time.Time) {
