@@ -20,7 +20,7 @@ go get -v github.com/rizalgowandy/cronx
 
 Import it in your code:
 
-```go
+```shell
 package main
 
 import "github.com/rizalgowandy/cronx"
@@ -63,24 +63,24 @@ Then, browse to:
 
 ### Schedule
 
-Field name   | Mandatory? | Allowed values  | Allowed special characters
-----------   | ---------- | --------------  | --------------------------
-Seconds      | Optional   | 0-59            | * / , -
-Minutes      | Yes        | 0-59            | * / , -
-Hours        | Yes        | 0-23            | * / , -
-Day of month | Yes        | 1-31            | * / , - ?
-Month        | Yes        | 1-12 or JAN-DEC | * / , -
-Day of week  | Yes        | 0-6 or SUN-SAT  | * / , - ?
+| Field name   | Mandatory? | Allowed values  | Allowed special characters |
+|--------------|------------|-----------------|----------------------------|
+| Seconds      | Optional   | 0-59            | * / , -                    |
+| Minutes      | Yes        | 0-59            | * / , -                    |
+| Hours        | Yes        | 0-23            | * / , -                    |
+| Day of month | Yes        | 1-31            | * / , - ?                  |
+| Month        | Yes        | 1-12 or JAN-DEC | * / , -                    |
+| Day of week  | Yes        | 0-6 or SUN-SAT  | * / , - ?                  |
 
 ### Predefined schedules
 
-Entry                  | Description                                | Equivalent
------                  | -----------                                | -------------
-@yearly (or @annually) | Run once a year, midnight, Jan. 1st        | 0 0 0 1 1 *
-@monthly               | Run once a month, midnight, first of month | 0 0 0 1 * *
-@weekly                | Run once a week, midnight between Sat/Sun  | 0 0 0 * * 0
-@daily (or @midnight)  | Run once a day, midnight                   | 0 0 0 * * *
-@hourly                | Run once an hour, beginning of hour        | 0 0 * * * *
+| Entry                  | Description                                | Equivalent  |
+|------------------------|--------------------------------------------|-------------|
+| @yearly (or @annually) | Run once a year, midnight, Jan. 1st        | 0 0 0 1 1 * |
+| @monthly               | Run once a month, midnight, first of month | 0 0 0 1 * * |
+| @weekly                | Run once a week, midnight between Sat/Sun  | 0 0 0 * * 0 |
+| @daily (or @midnight)  | Run once a day, midnight                   | 0 0 0 * * * |
+| @hourly                | Run once an hour, beginning of hour        | 0 0 * * * * |
 
 ### Intervals
 
@@ -102,6 +102,11 @@ down because of panic by adding middlewares. The idea of a middleware is to be d
 ```go
 package main
 
+import (
+	"github.com/rizalgowandy/cronx"
+	"github.com/rizalgowandy/cronx/interceptor"
+)
+
 func main() {
 	// Create cron middleware.
 	// The order is important.
@@ -113,7 +118,7 @@ func main() {
 		interceptor.DefaultWorkerPool(), // Limit concurrent running job.
 	)
 
-	cronx.New(cronx.WithInterceptor(middleware))
+	cronx.NewManager(cronx.WithInterceptor(middleware))
 }
 ```
 
@@ -123,6 +128,13 @@ Check all available interceptors [here](interceptor).
 
 ```go
 package main
+
+import (
+	"context"
+	"time"
+
+	"github.com/rizalgowandy/cronx"
+)
 
 // Sleep is a middleware that sleep a few second after job has been executed.
 func Sleep() cronx.Interceptor {
@@ -143,14 +155,22 @@ For more example check [here](interceptor).
 Here the list of commonly used commands.
 
 ```go
+package main
+
+import (
+	"context"
+
+	"github.com/rizalgowandy/cronx"
+)
+
 // Schedule sets a job to run at specific time.
 // Example:
 //  @every 5m
 //  0 */10 * * * * => every 10m
-Schedule(spec string, job JobItf) error
+func Schedule(spec string, job cronx.JobItf) error
 
 // ScheduleFunc adds a func to the Cron to be run on the given schedule.
-ScheduleFunc(spec, name string, cmd func (ctx context.Context) error) error
+func ScheduleFunc(spec, name string, cmd func(ctx context.Context) error) error
 
 // Schedules sets a job to run multiple times at specific time.
 // Symbol */,-? should never be used as separator character.
@@ -160,17 +180,17 @@ ScheduleFunc(spec, name string, cmd func (ctx context.Context) error) error
 //  Spec		: "0 0 1 * * *#0 0 2 * * *#0 0 3 * * *
 //  Separator	: "#"
 //  This input schedules the job to run 3 times.
-Schedules(spec, separator string, job JobItf) error
+func Schedules(spec, separator string, job cronx.JobItf) error
 
 // SchedulesFunc adds a func to the Cron to be run on the given schedules.
-SchedulesFunc(spec, separator, name string, cmd func (ctx context.Context) error) error
+func SchedulesFunc(spec, separator, name string, cmd func(ctx context.Context) error) error
 ```
 
-Go to [here](cronx.go) to see the list of available commands.
+Go [here](cronx.go) to see the list of available commands.
 
 ### What are the available interceptors?
 
-Go to [here](interceptor) to see the available interceptors.
+Go [here](interceptor) to see the available interceptors.
 
 ### Can I use my own router without starting the built-in router?
 
@@ -181,9 +201,16 @@ Here's an example of using [gin](https://github.com/gin-gonic/gin).
 ```go
 package main
 
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rizalgowandy/cronx"
+)
+
 func main() {
 	// Since we want to create custom HTTP server.
-	// Do not forget to shutdown the cron gracefully manually here.
+	// Do not forget to shut down the cron gracefully manually here.
 	manager := cronx.NewManager()
 	defer manager.Stop()
 
@@ -205,21 +232,24 @@ Yes, you can.
 ```go
 package main
 
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/rizalgowandy/cronx"
+	"github.com/rizalgowandy/cronx/page"
+)
+
 func main() {
 	// Since we want to create custom HTTP server.
-	// Do not forget to shutdown the cron gracefully manually here.
+	// Do not forget to shut down the cron gracefully manually here.
 	manager := cronx.NewManager()
 	defer manager.Stop()
-
-	// GetStatusTemplate will return the built-in status page template.
-	index, _ := page.GetStatusTemplate()
 
 	// An example using echo as the router.
 	e := echo.New()
 	index, _ := page.GetStatusTemplate()
 	e.GET("/jobs", func(context echo.Context) error {
 		// Serve the template to the writer and pass the current status data.
-		return index.Execute(context.Response().Writer, manager.GetStatusData())
+		return index.Execute(context.Response().Writer, manager.GetStatusData(ctx.QueryParam(cronx.QueryParamSort)))
 	})
 }
 ```
@@ -230,6 +260,12 @@ Yes, you can. By default, the cron timezone will follow the server location time
 
 ```go
 package main
+
+import (
+	"time"
+
+	"github.com/rizalgowandy/cronx"
+)
 
 func main() {
 	loc := func() *time.Location { // Change timezone to Jakarta.
@@ -253,6 +289,14 @@ This kind of information is stored inside metadata, which stored automatically i
 ```go
 package main
 
+import (
+	"context"
+	"errors"
+
+	"github.com/rizalgowandy/cronx"
+	"github.com/rizalgowandy/gdk/pkg/logx"
+)
+
 type subscription struct{}
 
 func (subscription) Run(ctx context.Context) error {
@@ -260,7 +304,7 @@ func (subscription) Run(ctx context.Context) error {
 	if !ok {
 		return errors.New("cannot job metadata")
 	}
-	logx.INF(ctx, logx.KV{"job": fn.Name(), "metadata": md}, "subscription is running")
+	logx.INF(ctx, md, "subscription is running")
 	return nil
 }
 ```

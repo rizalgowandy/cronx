@@ -46,7 +46,7 @@ const statusTemplate = `
 			});
 		}
 	</script>
-	<style type="text/css">
+	<style>
         body > .ui.container {
             margin-top: 3em;
             padding-bottom: 3em;
@@ -61,7 +61,7 @@ const statusTemplate = `
 			<i class="stopwatch icon"></i>
 			Cronx
 		</div>
-		<a class="item active" href="javascript:window.location.reload(true)">
+		<a class="item active" href="javascript:window.location.reload()">
 			<i class="tasks icon"></i>
 			Status
 		</a>
