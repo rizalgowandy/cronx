@@ -7,7 +7,7 @@ import (
 	"github.com/rizalgowandy/gdk/pkg/logx"
 )
 
-// RequestID is a middleware that inject request id to the context if it doesn't exists.
+// RequestID is a middleware that inject request id to the context if it doesn't exist.
 func RequestID(
 	ctx context.Context,
 	job *cronx.Job,

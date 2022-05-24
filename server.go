@@ -46,7 +46,7 @@ func NewServer(manager *Manager, address string) (*http.Server, error) {
 	}, nil
 }
 
-// NewSideCarServer creates a new side car HTTP server.
+// NewSideCarServer creates a new sidecar HTTP server.
 // HTTP server will be start automatically.
 // - /			=> current server status.
 // - /jobs		=> current jobs as frontend html.

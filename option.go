@@ -24,7 +24,7 @@ func WithParser(p cron.Parser) Option {
 	}
 }
 
-// WithChain specifies Job wrappers to apply to all jobs added to this cron.
+// WithInterceptor specifies Job wrappers to apply to all jobs added to this cron.
 func WithInterceptor(interceptors ...Interceptor) Option {
 	return func(m *Manager) {
 		m.interceptor = Chain(interceptors...)

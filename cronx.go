@@ -15,7 +15,7 @@ import (
 
 // Default configuration for the manager.
 var (
-	// Support the v1 where the first parameter is second.
+	// DefaultParser supports the v1 where the first parameter is second.
 	DefaultParser = cron.NewParser(
 		cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
 	)
@@ -71,7 +71,7 @@ type Manager struct {
 	// parser is a custom parser to support v1 that contains second as first parameter.
 	parser cron.Parser
 	// location describes the timezone current cron is running.
-	// By default the timezone will be the same timezone as the server.
+	// By default, the timezone will be the same timezone as the server.
 	location *time.Location
 	// autoStart determines if the cron will be started automatically or not.
 	autoStart bool
@@ -260,7 +260,7 @@ func (m *Manager) GetStatusData(sortQuery string) StatusPageData {
 	}
 }
 
-// GetStatusData returns run histories for history page.
+// GetHistoryData returns run histories for history page.
 func (m *Manager) GetHistoryData(
 	ctx context.Context,
 	req *Request,
