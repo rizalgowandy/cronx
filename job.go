@@ -149,7 +149,7 @@ func (j *Job) Run() {
 	j.RecordHistory(ctx, start, finish)
 
 	// Send alert if high latency is detected.
-	if latency > maxLatency {
+	if latency > maxLatency && latency > time.Second {
 		j.manager.alerter.NotifyHighLatency(ctx, j, prev, next, latency, maxLatency)
 	}
 }
