@@ -141,7 +141,6 @@ func TestNewJob(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			manager := NewManager()
 			got := NewJob(manager, tt.args.job, tt.args.waveNumber, tt.args.totalWave)
-			t.Log(got)
 			assert.NotNil(t, got)
 		})
 	}
