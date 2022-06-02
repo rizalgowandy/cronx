@@ -153,6 +153,11 @@ const jobsTemplate = `
 			</tr>
 			</thead>
 			<tbody>
+            {{if not .Data}}
+				<tr>
+					<td colspan="6" class="center aligned"><b><i>No records found.</i></b></td>
+				</tr>
+            {{end}}
             {{range .Data}}
 				<tr
                         {{if eq .Job.Status "RUNNING"}} class="warning"
@@ -172,27 +177,22 @@ const jobsTemplate = `
 					<td>
                         {{if eq .Job.Status "RUNNING"}}
 							<div class="ui yellow label">
-								<i class="sync icon"></i>
                                 {{.Job.Status}}
 							</div>
                         {{else if eq .Job.Status "IDLE"}}
 							<div class="ui green label">
-								<i class="hourglass end icon"></i>
                                 {{.Job.Status}}
 							</div>
                         {{else if eq .Job.Status "DOWN"}}
 							<div class="ui red label">
-								<i class="arrow down icon"></i>
                                 {{.Job.Status}}
 							</div>
                         {{else if eq .Job.Status "ERROR"}}
 							<div class="ui red label">
-								<i class="attention icon"></i>
                                 {{.Job.Status}}
 							</div>
                         {{else}}
 							<div class="ui label">
-								<i class="arrow up icon"></i>
                                 {{.Job.Status}}
 							</div>
                         {{end}}

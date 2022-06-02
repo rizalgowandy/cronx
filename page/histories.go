@@ -75,22 +75,24 @@ const historyTemplate = `
 	<div id="data_table">
 		<table class="ui sortable selectable center aligned celled table">
 			<thead>
-			<tr>
-				<th colspan="6">
-					<div class="ui right floated pagination menu">
-                        {{if .Pagination.PreviousURI}}
-							<a class="icon item" href="{{.Pagination.PreviousURI}}">
-								<i class="left chevron icon"></i>
-							</a>
-                        {{end}}
-                        {{if .Pagination.NextURI}}
-							<a class="icon item" href="{{.Pagination.NextURI}}">
-								<i class="right chevron icon"></i>
-							</a>
-                        {{end}}
-					</div>
-				</th>
-			</tr>
+            {{if or .Pagination.PreviousURI .Pagination.NextURI}}
+				<tr>
+					<th colspan="6">
+						<div class="ui right floated pagination menu">
+                            {{if .Pagination.PreviousURI}}
+								<a class="icon item" href="{{.Pagination.PreviousURI}}">
+									<i class="left chevron icon"></i>
+								</a>
+                            {{end}}
+                            {{if .Pagination.NextURI}}
+								<a class="icon item" href="{{.Pagination.NextURI}}">
+									<i class="right chevron icon"></i>
+								</a>
+                            {{end}}
+						</div>
+					</th>
+				</tr>
+            {{end}}
 			<tr>
 				<th id="id"
                         {{if eq (index .Sort.Columns "id") "ASC"}} class="sorted ascending"
@@ -131,6 +133,11 @@ const historyTemplate = `
 			</tr>
 			</thead>
 			<tbody>
+            {{if not .Data}}
+				<tr>
+					<td colspan="6" class="center aligned"><b><i>No records found.</i></b></td>
+				</tr>
+            {{end}}
             {{range .Data}}
 				<tr
                         {{if eq .Status "IDLE"}} class="positive"
@@ -149,12 +156,24 @@ const historyTemplate = `
 							<br/>
 							<br/>
 							err = {{.Error.Err}}<br/>
-							code = {{.Error.Code}}<br/>
-							fields = {{.Error.Fields}}<br/>
-							op_traces = {{.Error.OpTraces}}<br/>
-							message = {{.Error.Message}}<br/>
-							line = {{.Error.Line}}<br/>
-							metric_status = {{.Error.MetricStatus}}<br/>
+                            {{if .Error.Fields}}
+								fields = {{.Error.Fields}}<br/>
+                            {{end}}
+                            {{if .Error.Code}}
+								code = {{.Error.Code}}<br/>
+                            {{end}}
+                            {{if .Error.MetricStatus}}
+								metric_status = {{.Error.MetricStatus}}<br/>
+                            {{end}}
+                            {{if .Error.Message}}
+								message = {{.Error.Message}}<br/>
+                            {{end}}
+                            {{if .Error.Line}}
+								line = {{.Error.Line}}<br/>
+                            {{end}}
+                            {{if .Error.OpTraces}}
+								op_traces = {{.Error.OpTraces}}<br/>
+                            {{end}}
                         {{end}}
 					</td>
 					<td>
@@ -180,22 +199,24 @@ const historyTemplate = `
             {{end}}
 			</tbody>
 			<tfoot>
-			<tr>
-				<th colspan="6">
-					<div class="ui right floated pagination menu">
-                        {{if .Pagination.PreviousURI}}
-							<a class="icon item" href="{{.Pagination.PreviousURI}}">
-								<i class="left chevron icon"></i>
-							</a>
-                        {{end}}
-                        {{if .Pagination.NextURI}}
-							<a class="icon item" href="{{.Pagination.NextURI}}">
-								<i class="right chevron icon"></i>
-							</a>
-                        {{end}}
-					</div>
-				</th>
-			</tr>
+            {{if or .Pagination.PreviousURI .Pagination.NextURI}}
+				<tr>
+					<th colspan="6">
+						<div class="ui right floated pagination menu">
+                            {{if .Pagination.PreviousURI}}
+								<a class="icon item" href="{{.Pagination.PreviousURI}}">
+									<i class="left chevron icon"></i>
+								</a>
+                            {{end}}
+                            {{if .Pagination.NextURI}}
+								<a class="icon item" href="{{.Pagination.NextURI}}">
+									<i class="right chevron icon"></i>
+								</a>
+                            {{end}}
+						</div>
+					</th>
+				</tr>
+            {{end}}
 			</tfoot>
 		</table>
 	</div>

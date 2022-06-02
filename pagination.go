@@ -21,7 +21,7 @@ type Request struct {
 	// Sort of the resources in the response e.g. sort=id:desc,created_at:desc
 	// Sort is optional.
 	Sort string `query:"sort"           form:"sort"           json:"sort"           xml:"sort"`
-	// Limit number of results per call. Accepted values: 1 - 100. Default 10
+	// Limit number of results per call.
 	// Limit is optional.
 	Limit int `query:"limit"          form:"limit"          json:"limit"          xml:"limit"`
 	// StartingAfter is a cursor for use in pagination.
@@ -39,10 +39,10 @@ func (r *Request) Validate() error {
 		return errorx.E("url cannot be empty")
 	}
 	if r.Sort == "" {
-		r.Sort = "id"
+		r.Sort = "id:desc"
 	}
 	if r.Limit == 0 {
-		r.Limit = 10
+		r.Limit = 100
 	}
 	return nil
 }
@@ -132,9 +132,4 @@ func (r *Response) NextPageRequest() *Request {
 		StartingAfter: r.NextPageCursor(),
 		EndingBefore:  nil,
 	}
-}
-
-type Sort struct {
-	Query   string            `query:"query"   form:"query"   json:"query"   xml:"query"`
-	Columns map[string]string `query:"columns" form:"columns" json:"columns" xml:"columns"`
 }

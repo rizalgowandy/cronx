@@ -158,7 +158,7 @@ func RegisterJobs(ctx context.Context, manager *cronx.Manager) {
 	if err := manager.ScheduleFunc("@every 10s", "callYou", callYou); err != nil {
 		logx.ERR(ctx, errorx.E(err), "register callMe must success")
 	}
-	if err := manager.SchedulesFunc("0 0 9 * * *#0 0 10 * * *", "#", "callMe", callMe); err != nil {
+	if err := manager.SchedulesFunc("@every 10s#@every 30s", "#", "callMe", callMe); err != nil {
 		logx.ERR(ctx, errorx.E(err), "register callMe must success")
 	}
 

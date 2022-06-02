@@ -2,7 +2,6 @@ package cronx
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"strings"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/rizalgowandy/cronx/page"
 	"github.com/rizalgowandy/cronx/storage"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
+	"github.com/rizalgowandy/gdk/pkg/pagination"
 	"github.com/rizalgowandy/gdk/pkg/sortx"
 	"github.com/robfig/cron/v3"
 )
@@ -209,9 +209,7 @@ func (m *Manager) GetStatusData(sortQuery string) StatusPageData {
 
 	// Sort data.
 	sorts := sortx.NewSorts(sortQuery)
-	sortColumns := make(map[string]string)
 	for _, v := range sorts {
-		sortColumns[string(v.Key)] = string(v.Order)
 		sorter := NewStatusDataSorter(v.Key, v.Order, data)
 		sort.Sort(sorter)
 	}
@@ -254,9 +252,9 @@ func (m *Manager) GetStatusData(sortQuery string) StatusPageData {
 
 	return StatusPageData{
 		Data: listStatus,
-		Sort: Sort{
+		Sort: pagination.Sort{
 			Query:   sortQuery,
-			Columns: sortColumns,
+			Columns: sorts.Map(),
 		},
 	}
 }
@@ -272,19 +270,10 @@ func (m *Manager) GetHistoryData(
 
 	// Sort data.
 	sorts := sortx.NewSorts(req.Sort)
-	sortColumns := make(map[string]string)
-	order := ""
-	for _, v := range sorts {
-		sortColumns[string(v.Key)] = string(v.Order)
-		if order != "" {
-			order += ", "
-		}
-		order += fmt.Sprintf("%s %s", v.Key, v.Order)
-	}
 
 	// Get data from storage.
 	data, err := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
-		Order:         order,
+		Sorts:         sorts,
 		Limit:         req.Limit,
 		StartingAfter: req.StartingAfter,
 		EndingBefore:  req.EndingBefore,
@@ -315,13 +304,17 @@ func (m *Manager) GetHistoryData(
 		}
 
 		if next, _ := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
-			Order:         order,
+			Sorts:         sorts,
 			Limit:         1,
 			StartingAfter: paginationResp.NextPageCursor(),
 		}); len(next) > 0 {
 			paginationResp.NextURI = paginationResp.NextPageRequest().URI(&req.url)
 		}
-		if req.StartingAfter != nil {
+		if prev, _ := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
+			Sorts:        sorts,
+			Limit:        1,
+			EndingBefore: paginationResp.PrevPageCursor(),
+		}); len(prev) > 0 {
 			paginationResp.PreviousURI = paginationResp.PrevPageRequest().URI(&req.url)
 		}
 	}
@@ -335,9 +328,9 @@ func (m *Manager) GetHistoryData(
 	return HistoryPageData{
 		Data:       data,
 		Pagination: paginationResp,
-		Sort: Sort{
+		Sort: pagination.Sort{
 			Query:   req.Sort,
-			Columns: sortColumns,
+			Columns: sorts.Map(),
 		},
 	}, nil
 }

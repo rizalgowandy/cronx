@@ -3,6 +3,7 @@ package cronx
 import (
 	"time"
 
+	"github.com/rizalgowandy/gdk/pkg/pagination"
 	"github.com/robfig/cron/v3"
 )
 
@@ -22,6 +23,6 @@ type StatusData struct {
 }
 
 type StatusPageData struct {
-	Data []StatusData `json:"data"`
-	Sort Sort         `json:"sort"`
+	Data []StatusData    `json:"data"`
+	Sort pagination.Sort `json:"sort"`
 }
