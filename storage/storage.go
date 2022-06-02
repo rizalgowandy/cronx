@@ -12,6 +12,8 @@ import (
 
 //go:generate gomodifytags -all --quiet -w -file storage.go -clear-tags
 //go:generate gomodifytags -all --quiet --skip-unexported -w -file storage.go -add-tags db,json
+//go:generate gomodifytags --quiet --skip-unexported -w -file storage.go -struct HistoryMetadata -add-tags json -add-options json=omitempty
+//go:generate gomodifytags --quiet --skip-unexported -w -file storage.go -struct ErrorDetail -add-tags json -add-options json=omitempty
 
 type Client interface {
 	WriteHistory(ctx context.Context, req *History) error
@@ -33,11 +35,11 @@ type History struct {
 }
 
 type HistoryMetadata struct {
-	MachineID  string `db:"machine_id"   json:"machine_id"`
-	EntryID    int64  `db:"entry_id"     json:"entry_id"`
-	Wave       int64  `db:"wave"         json:"wave"`
-	TotalWave  int64  `db:"total_wave"   json:"total_wave"`
-	IsLastWave bool   `db:"is_last_wave" json:"is_last_wave"`
+	MachineID  string `db:"machine_id"   json:"machine_id,omitempty"`
+	EntryID    int64  `db:"entry_id"     json:"entry_id,omitempty"`
+	Wave       int64  `db:"wave"         json:"wave,omitempty"`
+	TotalWave  int64  `db:"total_wave"   json:"total_wave,omitempty"`
+	IsLastWave bool   `db:"is_last_wave" json:"is_last_wave,omitempty"`
 }
 
 func (h *HistoryMetadata) Value() (driver.Value, error) {
@@ -54,13 +56,13 @@ func (h *HistoryMetadata) Scan(value interface{}) error {
 }
 
 type ErrorDetail struct {
-	Err          string              `db:"err"           json:"err"`
-	Code         errorx.Code         `db:"code"          json:"code"`
-	Fields       errorx.Fields       `db:"fields"        json:"fields"`
-	OpTraces     []errorx.Op         `db:"op_traces"     json:"op_traces"`
-	Message      errorx.Message      `db:"message"       json:"message"`
-	Line         errorx.Line         `db:"line"          json:"line"`
-	MetricStatus errorx.MetricStatus `db:"metric_status" json:"metric_status"`
+	Err          string              `db:"err"           json:"err,omitempty"`
+	Code         errorx.Code         `db:"code"          json:"code,omitempty"`
+	Fields       errorx.Fields       `db:"fields"        json:"fields,omitempty"`
+	OpTraces     []errorx.Op         `db:"op_traces"     json:"op_traces,omitempty"`
+	Message      errorx.Message      `db:"message"       json:"message,omitempty"`
+	Line         errorx.Line         `db:"line"          json:"line,omitempty"`
+	MetricStatus errorx.MetricStatus `db:"metric_status" json:"metric_status,omitempty"`
 }
 
 func (e *ErrorDetail) Value() (driver.Value, error) {
@@ -77,7 +79,7 @@ func (e *ErrorDetail) Scan(value interface{}) error {
 }
 
 type HistoryFilter struct {
-	Sorts         sortx.Sorts `db:"sort"           json:"sort"`
+	Sorts         sortx.Sorts `db:"sorts"          json:"sorts"`
 	Limit         int         `db:"limit"          json:"limit"`
 	StartingAfter *int64      `db:"starting_after" json:"starting_after"`
 	EndingBefore  *int64      `db:"ending_before"  json:"ending_before"`

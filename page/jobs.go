@@ -153,6 +153,11 @@ const jobsTemplate = `
 			</tr>
 			</thead>
 			<tbody>
+            {{if not .Data}}
+				<tr>
+					<td colspan="6" class="center aligned"><b><i>No records found.</i></b></td>
+				</tr>
+            {{end}}
             {{range .Data}}
 				<tr
                         {{if eq .Job.Status "RUNNING"}} class="warning"

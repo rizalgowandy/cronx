@@ -39,10 +39,10 @@ func (r *Request) Validate() error {
 		return errorx.E("url cannot be empty")
 	}
 	if r.Sort == "" {
-		r.Sort = "id"
+		r.Sort = "id:desc"
 	}
 	if r.Limit == 0 {
-		r.Limit = 25
+		r.Limit = 100
 	}
 	return nil
 }

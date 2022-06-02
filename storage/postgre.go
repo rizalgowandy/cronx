@@ -134,15 +134,22 @@ func (p *PostgreClient) ReadHistories(ctx context.Context, req *HistoryFilter) (
 		PlaceholderFormat(squirrel.Dollar)
 
 	if req.StartingAfter != nil {
-		sq = sq.Where("id > ?", *req.StartingAfter)
+		if !req.Sorts.Desc() {
+			sq = sq.Where("id > ?", *req.StartingAfter)
+		} else {
+			sq = sq.Where("id < ?", *req.StartingAfter)
+		}
 	}
 	if req.EndingBefore != nil {
-		sq = sq.FromSelect(
-			sq.From("cronx_histories").
-				Where("id < ?", *req.EndingBefore).
-				OrderBy(req.Sorts.OrderBy(true)),
-			"before",
-		)
+		before := sq.OrderBy(req.Sorts.OrderBy(true))
+
+		if !req.Sorts.Desc() {
+			before = before.Where("id < ?", *req.EndingBefore)
+		} else {
+			before = before.Where("id > ?", *req.EndingBefore)
+		}
+
+		sq = sq.FromSelect(before, "before")
 	}
 	sq = sq.OrderBy(req.Sorts.OrderBy())
 
