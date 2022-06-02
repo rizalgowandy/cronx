@@ -25,6 +25,10 @@ build: # ensure all binary can be build.
 generate: # generate all go generate command inside internal package.
 	@go generate -v ./...
 
+.PHONY: run
+run: # run latest example.
+	@air -c ./scripts/.air-storage.toml
+
 .PHONY: run-simplest
 run-simplest: # run example 1-simplest.
 	@air -c ./scripts/.air-simplest.toml

@@ -1,14 +1,6 @@
-package page
-
-import (
-	"html/template"
-	"sync"
-)
-
-const statusTemplate = `
 <!--
 	This page is only being used for development to restructure the code,
-	the real html page is on status.go.
+	the real html page is on jobs.go.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +52,11 @@ const statusTemplate = `
 		</div>
 		<a class="item active" href="javascript:window.location.reload()">
 			<i class="tasks icon"></i>
-			Status
+			Jobs
+		</a>
+		<a class="item" href="/histories">
+			<i class="history icon"></i>
+			Histories
 		</a>
 		<div class="item" onclick="screenshot()">
 			<button class="fluid ui labeled inverted green icon button">
@@ -224,19 +220,3 @@ const statusTemplate = `
 </div>
 </body>
 </html>
-`
-
-var (
-	statusPageOnce  sync.Once
-	statusPage      *template.Template
-	statusPageError error
-)
-
-func GetStatusTemplate() (*template.Template, error) {
-	statusPageOnce.Do(func() {
-		t := template.New(statusTemplateName)
-		statusPage, statusPageError = t.Parse(statusTemplate)
-	})
-
-	return statusPage, statusPageError
-}

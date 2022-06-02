@@ -1,6 +1,14 @@
+package page
+
+import (
+	"html/template"
+	"sync"
+)
+
+const historyTemplate = `
 <!--
 	This page is only being used for development to restructure the code,
-	the real html page is on status.go.
+	the real html page is on histories.go.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +16,6 @@
 	<!-- Standard Meta -->
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<meta http-equiv="refresh" content="30"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 	<!-- Site Properties -->
 	<title>Cronx</title>
@@ -50,9 +57,13 @@
 			<i class="stopwatch icon"></i>
 			Cronx
 		</div>
-		<a class="item active" href="javascript:window.location.reload()">
+		<a class="item" href="/jobs">
 			<i class="tasks icon"></i>
-			Status
+			Jobs
+		</a>
+		<a class="item active" href="javascript:window.location.reload()">
+			<i class="history icon"></i>
+			Histories
 		</a>
 		<div class="item" onclick="screenshot()">
 			<button class="fluid ui labeled inverted green icon button">
@@ -216,3 +227,19 @@
 </div>
 </body>
 </html>
+`
+
+var (
+	historyPageOnce  sync.Once
+	historyPage      *template.Template
+	historyPageError error
+)
+
+func GetHistoryTemplate() (*template.Template, error) {
+	historyPageOnce.Do(func() {
+		t := template.New(historiesTemplateName)
+		historyPage, historyPageError = t.Parse(historyTemplate)
+	})
+
+	return historyPage, historyPageError
+}
