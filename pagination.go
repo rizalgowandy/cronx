@@ -38,7 +38,7 @@ func (r *Request) Validate() error {
 		return errorx.E("url cannot be empty")
 	}
 	if r.Sort == "" {
-		r.Sort = "created_at DESC"
+		r.Sort = "created_at:desc"
 	}
 	if r.Limit == 0 {
 		r.Limit = 25
