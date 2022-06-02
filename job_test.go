@@ -24,7 +24,7 @@ func TestJob_Run(t *testing.T) {
 			name: "Success with run resulting error",
 			fields: fields{
 				Name:   "Func",
-				Status: StatusCodeIdle,
+				Status: StatusCodeSuccess,
 				inner:  Func(func(ctx context.Context) error { return errors.New("error") }),
 			},
 		},
@@ -32,7 +32,7 @@ func TestJob_Run(t *testing.T) {
 			name: "Success",
 			fields: fields{
 				Name:   "Func",
-				Status: StatusCodeIdle,
+				Status: StatusCodeSuccess,
 				inner:  Func(func(ctx context.Context) error { return nil }),
 			},
 		},
@@ -81,11 +81,11 @@ func TestJob_UpdateStatus(t *testing.T) {
 			want: StatusCodeRunning,
 		},
 		{
-			name: "StatusCodeIdle",
+			name: "StatusCodeSuccess",
 			fields: fields{
-				status: statusIdle,
+				status: statusSuccess,
 			},
-			want: StatusCodeIdle,
+			want: StatusCodeSuccess,
 		},
 		{
 			name: "StatusCodeDown",

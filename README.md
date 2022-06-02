@@ -49,14 +49,14 @@ Then, browse to:
 - http://localhost:9001/api/jobs => see the current job status as JSON response.
 - http://localhost:9001/api/histories => see previous job run histories as JSON response.
 
-![cronx](docs/screenshot/6_jobs_page.png)
+![cronx](docs/screenshot/7_jobs_page.png)
 
 ## Available Status
 
 * **Down** => Job fails to be registered.
 * **Up** => Job has just been created.
 * **Running** => Job is currently running.
-* **Idle** => Job is waiting for next execution time.
+* **Success** => Job succeeds on the last run, waiting for next run.
 * **Error** => Job fails on the last run.
 
 ## Schedule Specification Format
