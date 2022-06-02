@@ -98,8 +98,8 @@ const jobsTemplate = `
 		<div class="step">
 			<i class="hourglass end icon"></i>
 			<div class="content">
-				<div class="title">Idle</div>
-				<div class="description">Job is waiting for next execution time</div>
+				<div class="title">Success</div>
+				<div class="description">Job succeeds on the last run, waiting for next run</div>
 			</div>
 		</div>
 		<div class="step">
@@ -161,7 +161,7 @@ const jobsTemplate = `
             {{range .Data}}
 				<tr
                         {{if eq .Job.Status "RUNNING"}} class="warning"
-                        {{else if eq .Job.Status "IDLE"}} class="positive"
+                        {{else if eq .Job.Status "SUCCESS"}} class="positive"
                         {{else if eq .Job.Status "DOWN"}} class="error"
                         {{else if eq .Job.Status "ERROR"}} class="error"
                         {{end}}
@@ -179,7 +179,7 @@ const jobsTemplate = `
 							<div class="ui yellow label">
                                 {{.Job.Status}}
 							</div>
-                        {{else if eq .Job.Status "IDLE"}}
+                        {{else if eq .Job.Status "SUCCESS"}}
 							<div class="ui green label">
                                 {{.Job.Status}}
 							</div>

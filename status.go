@@ -10,8 +10,8 @@ func (s StatusCode) String() string {
 const (
 	// StatusCodeUp describes that current job has just been created.
 	StatusCodeUp StatusCode = "UP"
-	// StatusCodeIdle describes that current job is waiting for next execution time.
-	StatusCodeIdle StatusCode = "IDLE"
+	// StatusCodeSuccess describes that current job is waiting for next execution time.
+	StatusCodeSuccess StatusCode = "SUCCESS"
 	// StatusCodeRunning describes that current job is currently running.
 	StatusCodeRunning StatusCode = "RUNNING"
 	// StatusCodeDown describes that current job has failed to be registered.
@@ -21,7 +21,7 @@ const (
 
 	statusDown    uint32 = 0
 	statusUp      uint32 = 1
-	statusIdle    uint32 = 2
+	statusSuccess uint32 = 2
 	statusRunning uint32 = 3
 	statusError   uint32 = 4
 )

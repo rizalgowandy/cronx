@@ -93,8 +93,8 @@ func (j *Job) UpdateStatus() StatusCode {
 	switch atomic.LoadUint32(&j.status) {
 	case statusRunning:
 		j.Status = StatusCodeRunning
-	case statusIdle:
-		j.Status = StatusCodeIdle
+	case statusSuccess:
+		j.Status = StatusCodeSuccess
 	case statusDown:
 		j.Status = StatusCodeDown
 	case statusError:
@@ -133,7 +133,7 @@ func (j *Job) Run() {
 		j.Error = err.Error()
 		atomic.StoreUint32(&j.status, statusError)
 	} else {
-		atomic.StoreUint32(&j.status, statusIdle)
+		atomic.StoreUint32(&j.status, statusSuccess)
 	}
 
 	// Record time needed to execute the whole process.

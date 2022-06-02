@@ -140,7 +140,7 @@ const historyTemplate = `
             {{end}}
             {{range .Data}}
 				<tr
-                        {{if eq .Status "IDLE"}} class="positive"
+                        {{if eq .Status "SUCCESS"}} class="positive"
                         {{else if eq .Status "ERROR"}} class="error"
                         {{end}}
 				>
@@ -177,7 +177,7 @@ const historyTemplate = `
                         {{end}}
 					</td>
 					<td>
-                        {{if eq .Status "IDLE"}}
+                        {{if eq .Status "SUCCESS"}}
 							<div class="ui green label">
 								SUCCESS
 							</div>
