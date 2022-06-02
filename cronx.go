@@ -2,7 +2,6 @@ package cronx
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"strings"
 	"time"
@@ -273,18 +272,13 @@ func (m *Manager) GetHistoryData(
 	// Sort data.
 	sorts := sortx.NewSorts(req.Sort)
 	sortColumns := make(map[string]string)
-	order := ""
 	for _, v := range sorts {
 		sortColumns[string(v.Key)] = string(v.Order)
-		if order != "" {
-			order += ", "
-		}
-		order += fmt.Sprintf("%s %s", v.Key, v.Order)
 	}
 
 	// Get data from storage.
 	data, err := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
-		Order:         order,
+		Sorts:         sorts,
 		Limit:         req.Limit,
 		StartingAfter: req.StartingAfter,
 		EndingBefore:  req.EndingBefore,
@@ -315,13 +309,17 @@ func (m *Manager) GetHistoryData(
 		}
 
 		if next, _ := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
-			Order:         order,
+			Sorts:         sorts,
 			Limit:         1,
 			StartingAfter: paginationResp.NextPageCursor(),
 		}); len(next) > 0 {
 			paginationResp.NextURI = paginationResp.NextPageRequest().URI(&req.url)
 		}
-		if req.StartingAfter != nil {
+		if prev, _ := m.storage.ReadHistories(ctx, &storage.HistoryFilter{
+			Sorts:        sorts,
+			Limit:        1,
+			EndingBefore: paginationResp.PrevPageCursor(),
+		}); len(prev) > 0 {
 			paginationResp.PreviousURI = paginationResp.PrevPageRequest().URI(&req.url)
 		}
 	}

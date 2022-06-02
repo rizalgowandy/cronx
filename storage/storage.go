@@ -7,6 +7,7 @@ import (
 
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
 	"github.com/rizalgowandy/gdk/pkg/jsonx"
+	"github.com/rizalgowandy/gdk/pkg/sortx"
 )
 
 //go:generate gomodifytags -all --quiet -w -file storage.go -clear-tags
@@ -76,8 +77,8 @@ func (e *ErrorDetail) Scan(value interface{}) error {
 }
 
 type HistoryFilter struct {
-	Order         string `db:"order"          json:"order"`
-	Limit         int    `db:"limit"          json:"limit"`
-	StartingAfter *int64 `db:"starting_after" json:"starting_after"`
-	EndingBefore  *int64 `db:"ending_before"  json:"ending_before"`
+	Sorts         []sortx.Sort `db:"sort"           json:"sort"`
+	Limit         int          `db:"limit"          json:"limit"`
+	StartingAfter *int64       `db:"starting_after" json:"starting_after"`
+	EndingBefore  *int64       `db:"ending_before"  json:"ending_before"`
 }

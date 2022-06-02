@@ -2,11 +2,13 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
+	"github.com/rizalgowandy/gdk/pkg/sortx"
 	"github.com/rizalgowandy/gdk/pkg/storage/database"
 	"github.com/rizalgowandy/gdk/pkg/tags"
 )
@@ -130,7 +132,6 @@ func (p *PostgreClient) ReadHistories(ctx context.Context, req *HistoryFilter) (
 			"metadata",
 		).
 		From("cronx_histories").
-		OrderBy(req.Order).
 		Limit(uint64(req.Limit)).
 		PlaceholderFormat(squirrel.Dollar)
 
@@ -138,8 +139,14 @@ func (p *PostgreClient) ReadHistories(ctx context.Context, req *HistoryFilter) (
 		sq = sq.Where("id > ?", *req.StartingAfter)
 	}
 	if req.EndingBefore != nil {
-		sq = sq.Where("id < ?", *req.EndingBefore)
+		sq = sq.FromSelect(
+			sq.From("cronx_histories").
+				Where("id < ?", *req.EndingBefore).
+				OrderBy(createOrderBy(req.Sorts, true)),
+			"before",
+		)
 	}
+	sq = sq.OrderBy(createOrderBy(req.Sorts, false))
 
 	query, args, err := sq.ToSql()
 	if err != nil {
@@ -179,4 +186,24 @@ func (p *PostgreClient) ReadHistories(ctx context.Context, req *HistoryFilter) (
 	}
 
 	return data, nil
+}
+
+func createOrderBy(sorts []sortx.Sort, reverse bool) string {
+	var result string
+	for _, v := range sorts {
+		cur := v.Order
+		if reverse {
+			switch v.Order {
+			case sortx.OrderAscending:
+				cur = sortx.OrderDescending
+			case sortx.OrderDescending:
+				cur = sortx.OrderAscending
+			}
+		}
+		if result != "" {
+			result += ", "
+		}
+		result += fmt.Sprintf("%s %s", v.Key, cur)
+	}
+	return result
 }

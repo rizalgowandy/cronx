@@ -21,7 +21,7 @@ type Request struct {
 	// Sort of the resources in the response e.g. sort=id:desc,created_at:desc
 	// Sort is optional.
 	Sort string `query:"sort"           form:"sort"           json:"sort"           xml:"sort"`
-	// Limit number of results per call. Accepted values: 1 - 100. Default 10
+	// Limit number of results per call. Default 100.
 	// Limit is optional.
 	Limit int `query:"limit"          form:"limit"          json:"limit"          xml:"limit"`
 	// StartingAfter is a cursor for use in pagination.
@@ -42,7 +42,7 @@ func (r *Request) Validate() error {
 		r.Sort = "id"
 	}
 	if r.Limit == 0 {
-		r.Limit = 10
+		r.Limit = 25
 	}
 	return nil
 }
