@@ -33,7 +33,6 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, req *History) error {
 
 	query := `
 		INSERT INTO cronx_histories (
-			id,
 			created_at,
 			name,
 			status,
@@ -55,8 +54,7 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, req *History) error {
 		   $7,
 		   $8,
 		   $9,
-		   $10,
-		   $11
+		   $10
 		)
 		;
 	`
@@ -64,7 +62,6 @@ func (p *PostgreClient) WriteHistory(ctx context.Context, req *History) error {
 	_, err = pool.Exec(
 		ctx,
 		query,
-		req.ID,
 		req.CreatedAt,
 		req.Name,
 		req.Status,

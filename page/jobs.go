@@ -38,7 +38,7 @@ const jobsTemplate = `
 	<script src="https://cdn.jsdelivr.net/npm/canvas2image@1.0.5/canvas2image.min.js"></script>
 	<script type='text/javascript'>
 		function screenshot() {
-			html2canvas(document.querySelector('#table_status')).then(function(canvas) {
+			html2canvas(document.querySelector('#data_table')).then(function(canvas) {
 				Canvas2Image.saveAsPNG(canvas, canvas.width, canvas.height);
 			});
 		}
@@ -110,7 +110,7 @@ const jobsTemplate = `
 			</div>
 		</div>
 	</div>
-	<div id="table_status">
+	<div id="data_table">
 		<table class="ui sortable selectable center aligned celled table">
 			<thead>
 			<tr>

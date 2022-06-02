@@ -126,10 +126,23 @@ func (c *ServerController) Histories(ctx echo.Context) error {
 		})
 	}
 
-	return index.Execute(
-		ctx.Response().Writer,
-		c.Manager.GetStatusData(ctx.QueryParam(QueryParamSort)),
-	)
+	var req Request
+	err = ctx.Bind(&req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	req.url = *ctx.Request().URL
+
+	data, err := c.Manager.GetHistoryData(ctx.Request().Context(), &req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return index.Execute(ctx.Response().Writer, data)
 }
 
 // APIHistories returns run histories as json.

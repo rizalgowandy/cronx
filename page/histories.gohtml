@@ -29,7 +29,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/canvas2image@1.0.5/canvas2image.min.js"></script>
 	<script type='text/javascript'>
 		function screenshot() {
-			html2canvas(document.querySelector('#table_status')).then(function(canvas) {
+			html2canvas(document.querySelector('#data_table')).then(function(canvas) {
 				Canvas2Image.saveAsPNG(canvas, canvas.width, canvas.height);
 			});
 		}
@@ -64,46 +64,25 @@
 			</button>
 		</div>
 	</div>
-	<div class="ui five steps">
-		<div class="step">
-			<i class="arrow down icon"></i>
-			<div class="content">
-				<div class="title">Down</div>
-				<div class="description">Job fails to be registered</div>
-			</div>
-		</div>
-		<div class="step">
-			<i class="arrow up icon"></i>
-			<div class="content">
-				<div class="title">Up</div>
-				<div class="description">Job has just been created</div>
-			</div>
-		</div>
-		<div class="step">
-			<i class="sync icon"></i>
-			<div class="content">
-				<div class="title">Running</div>
-				<div class="description">Job is currently running</div>
-			</div>
-		</div>
-		<div class="step">
-			<i class="hourglass end icon"></i>
-			<div class="content">
-				<div class="title">Idle</div>
-				<div class="description">Job is waiting for next execution time</div>
-			</div>
-		</div>
-		<div class="step">
-			<i class="attention icon"></i>
-			<div class="content">
-				<div class="title">Error</div>
-				<div class="description">Job fails on the prev run</div>
-			</div>
-		</div>
-	</div>
-	<div id="table_status">
+	<div id="data_table">
 		<table class="ui sortable selectable center aligned celled table">
 			<thead>
+			<tr>
+				<th colspan="6">
+					<div class="ui right floated pagination menu">
+                        {{if .Pagination.PreviousURI}}
+							<a class="icon item" href="{{.Pagination.PreviousURI}}">
+								<i class="left chevron icon"></i>
+							</a>
+                        {{end}}
+                        {{if .Pagination.NextURI}}
+							<a class="icon item" href="{{.Pagination.NextURI}}">
+								<i class="right chevron icon"></i>
+							</a>
+                        {{end}}
+					</div>
+				</th>
+			</tr>
 			<tr>
 				<th id="id"
                         {{if eq (index .Sort.Columns "id") "ASC"}} class="sorted ascending"
@@ -123,17 +102,17 @@
                         {{end}}
 				>Status
 				</th>
-				<th id="prev_run"
-                        {{if eq (index .Sort.Columns "prev_run") "ASC"}} class="sorted ascending"
-                        {{else if eq (index .Sort.Columns "prev_run") "DESC"}} class="sorted descending"
+				<th id="started_at"
+                        {{if eq (index .Sort.Columns "started_at") "ASC"}} class="sorted ascending"
+                        {{else if eq (index .Sort.Columns "started_at") "DESC"}} class="sorted descending"
                         {{end}}
-				>Prev run
+				>Started at
 				</th>
-				<th id="next_run"
-                        {{if eq (index .Sort.Columns "next_run") "ASC"}} class="sorted ascending"
-                        {{else if eq (index .Sort.Columns "next_run") "DESC"}} class="sorted descending"
+				<th id="finished_at"
+                        {{if eq (index .Sort.Columns "finished_at") "ASC"}} class="sorted ascending"
+                        {{else if eq (index .Sort.Columns "finished_at") "DESC"}} class="sorted descending"
                         {{end}}
-				>Next run
+				>Finished at
 				</th>
 				<th id="latency"
                         {{if eq (index .Sort.Columns "latency") "ASC"}} class="sorted ascending"
@@ -146,74 +125,70 @@
 			<tbody>
             {{range .Data}}
 				<tr
-                        {{if eq .Job.Status "RUNNING"}} class="warning"
-                        {{else if eq .Job.Status "IDLE"}} class="positive"
-                        {{else if eq .Job.Status "DOWN"}} class="error"
-                        {{else if eq .Job.Status "ERROR"}} class="error"
+                        {{if eq .Status "IDLE"}} class="positive"
+                        {{else if eq .Status "ERROR"}} class="error"
                         {{end}}
 				>
 					<td>{{.ID}}</td>
 					<td class="left aligned">
-                        {{if gt .Job.TotalWave 1 }}
-                            {{.Job.Name}} ({{.Job.Wave}}/{{.Job.TotalWave}})
+                        {{if gt .Metadata.TotalWave 1 }}
+                            {{.Name}} ({{.Metadata.Wave}}/{{.Metadata.TotalWave}})
                         {{else}}
-                            {{.Job.Name}}
+                            {{.Name}}
+                        {{end}}
+
+                        {{if eq .Status "ERROR"}}
+							<br/>
+							<br/>
+							err = {{.Error.Err}}<br/>
+							code = {{.Error.Code}}<br/>
+							fields = {{.Error.Fields}}<br/>
+							op_traces = {{.Error.OpTraces}}<br/>
+							message = {{.Error.Message}}<br/>
+							line = {{.Error.Line}}<br/>
+							metric_status = {{.Error.MetricStatus}}<br/>
                         {{end}}
 					</td>
 					<td>
-                        {{if eq .Job.Status "RUNNING"}}
-							<div class="ui yellow label">
-								<i class="sync icon"></i>
-                                {{.Job.Status}}
-							</div>
-                        {{else if eq .Job.Status "IDLE"}}
+                        {{if eq .Status "IDLE"}}
 							<div class="ui green label">
-								<i class="hourglass end icon"></i>
-                                {{.Job.Status}}
+								SUCCESS
 							</div>
-                        {{else if eq .Job.Status "DOWN"}}
+                        {{else if eq .Status "ERROR"}}
 							<div class="ui red label">
-								<i class="arrow down icon"></i>
-                                {{.Job.Status}}
-							</div>
-                        {{else if eq .Job.Status "ERROR"}}
-							<div class="ui red label">
-								<i class="attention icon"></i>
-                                {{.Job.Status}}
+								FAILED
 							</div>
                         {{else}}
 							<div class="ui label">
 								<i class="arrow up icon"></i>
-                                {{.Job.Status}}
+                                {{.Status}}
 							</div>
                         {{end}}
 					</td>
-					<td>
-                        {{if eq .Job.Status "ERROR"}}
-                            {{if not .Prev.IsZero}}
-                                {{.Prev.Format "2006-01-02 15:04:05"}}
-                            {{end}}
-							<br/>
-                            {{.Job.Error}}
-                        {{else}}
-                            {{if not .Prev.IsZero}}
-                                {{.Prev.Format "2006-01-02 15:04:05"}}
-                            {{end}}
-                        {{end}}
-					</td>
-					<td>
-                        {{if eq .Job.Status "DOWN"}}
-                            {{.Job.Error}}
-                        {{else}}
-                            {{if not .Next.IsZero}}
-                                {{.Next.Format "2006-01-02 15:04:05"}}
-                            {{end}}
-                        {{end}}
-					</td>
-					<td>{{.Job.Latency}}</td>
+					<td>{{.StartedAt.Format "2006-01-02 15:04:05"}}</td>
+					<td>{{.FinishedAt.Format "2006-01-02 15:04:05"}}</td>
+					<td>{{.LatencyText}}</td>
 				</tr>
             {{end}}
 			</tbody>
+			<tfoot>
+			<tr>
+				<th colspan="6">
+					<div class="ui right floated pagination menu">
+                        {{if .Pagination.PreviousURI}}
+							<a class="icon item" href="{{.Pagination.PreviousURI}}">
+								<i class="left chevron icon"></i>
+							</a>
+                        {{end}}
+                        {{if .Pagination.NextURI}}
+							<a class="icon item" href="{{.Pagination.NextURI}}">
+								<i class="right chevron icon"></i>
+							</a>
+                        {{end}}
+					</div>
+				</th>
+			</tr>
+			</tfoot>
 		</table>
 	</div>
 </div>

@@ -309,7 +309,7 @@ func (m *Manager) GetHistoryData(
 		CursorRange:   nil,
 	}
 	if len(data) > 0 {
-		paginationResp.CursorRange = []string{
+		paginationResp.CursorRange = []int64{
 			data[0].ID,
 			data[len(data)-1].ID,
 		}
