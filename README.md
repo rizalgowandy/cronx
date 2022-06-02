@@ -49,7 +49,7 @@ Then, browse to:
 - http://localhost:9001/api/jobs => see the current job status as JSON response.
 - http://localhost:9001/api/histories => see previous job run histories as JSON response.
 
-![cronx](docs/screenshot/5_status_page.png)
+![cronx](docs/screenshot/6_jobs_page.png)
 
 ## Available Status
 
