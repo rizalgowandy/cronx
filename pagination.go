@@ -133,8 +133,3 @@ func (r *Response) NextPageRequest() *Request {
 		EndingBefore:  nil,
 	}
 }
-
-type Sort struct {
-	Query   string            `query:"query"   form:"query"   json:"query"   xml:"query"`
-	Columns map[string]string `query:"columns" form:"columns" json:"columns" xml:"columns"`
-}
