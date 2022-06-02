@@ -18,7 +18,7 @@ type Client interface {
 }
 
 type History struct {
-	ID          string          `db:"id"           json:"id"`
+	ID          int64           `db:"id"           json:"id"`
 	CreatedAt   time.Time       `db:"created_at"   json:"created_at"`
 	Name        string          `db:"name"         json:"name"`
 	Status      string          `db:"status"       json:"status"`
@@ -76,8 +76,8 @@ func (e *ErrorDetail) Scan(value interface{}) error {
 }
 
 type HistoryFilter struct {
-	Order         string  `db:"order"          json:"order"`
-	Limit         int     `db:"limit"          json:"limit"`
-	StartingAfter *string `db:"starting_after" json:"starting_after"`
-	EndingBefore  *string `db:"ending_before"  json:"ending_before"`
+	Order         string `db:"order"          json:"order"`
+	Limit         int    `db:"limit"          json:"limit"`
+	StartingAfter *int64 `db:"starting_after" json:"starting_after"`
+	EndingBefore  *int64 `db:"ending_before"  json:"ending_before"`
 }

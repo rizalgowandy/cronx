@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/rizalgowandy/gdk/pkg/converter"
 	"github.com/rizalgowandy/gdk/pkg/errorx/v2"
 )
 
@@ -20,17 +21,17 @@ type Request struct {
 	// Sort of the resources in the response e.g. sort=id:desc,created_at:desc
 	// Sort is optional.
 	Sort string `query:"sort"           form:"sort"           json:"sort"           xml:"sort"`
-	// Limit number of results per call. Accepted values: 0 - 100. Default 25
+	// Limit number of results per call. Accepted values: 1 - 100. Default 10
 	// Limit is optional.
 	Limit int `query:"limit"          form:"limit"          json:"limit"          xml:"limit"`
 	// StartingAfter is a cursor for use in pagination.
 	// StartingAfter is a resource ID that defines your place in the list.
 	// StartingAfter is optional.
-	StartingAfter *string `query:"starting_after" form:"starting_after" json:"starting_after" xml:"starting_after"`
+	StartingAfter *int64 `query:"starting_after" form:"starting_after" json:"starting_after" xml:"starting_after"`
 	// EndingBefore is cursor for use in pagination.
 	// EndingBefore is a resource ID that defines your place in the list.
 	// EndingBefore is optional.
-	EndingBefore *string `query:"ending_before"  form:"ending_before"  json:"ending_before"  xml:"ending_before"`
+	EndingBefore *int64 `query:"ending_before"  form:"ending_before"  json:"ending_before"  xml:"ending_before"`
 }
 
 func (r *Request) Validate() error {
@@ -38,10 +39,10 @@ func (r *Request) Validate() error {
 		return errorx.E("url cannot be empty")
 	}
 	if r.Sort == "" {
-		r.Sort = "created_at DESC"
+		r.Sort = "id"
 	}
 	if r.Limit == 0 {
-		r.Limit = 25
+		r.Limit = 10
 	}
 	return nil
 }
@@ -55,10 +56,10 @@ func (r *Request) QueryParams() map[string]string {
 		res["limit"] = strconv.Itoa(r.Limit)
 	}
 	if r.StartingAfter != nil {
-		res["starting_after"] = *r.StartingAfter
+		res["starting_after"] = converter.String(*r.StartingAfter)
 	}
 	if r.EndingBefore != nil {
-		res["ending_before"] = *r.EndingBefore
+		res["ending_before"] = converter.String(*r.EndingBefore)
 	}
 	return res
 }
@@ -75,8 +76,8 @@ func (r *Request) URI(req *url.URL) *string {
 
 type Response struct {
 	Sort          string  `query:"sort"           form:"sort"           json:"sort"           xml:"sort"`
-	StartingAfter *string `query:"starting_after" form:"starting_after" json:"starting_after" xml:"starting_after"`
-	EndingBefore  *string `query:"ending_before"  form:"ending_before"  json:"ending_before"  xml:"ending_before"`
+	StartingAfter *int64  `query:"starting_after" form:"starting_after" json:"starting_after" xml:"starting_after"`
+	EndingBefore  *int64  `query:"ending_before"  form:"ending_before"  json:"ending_before"  xml:"ending_before"`
 	Total         int     `query:"total"          form:"total"          json:"total"          xml:"total"`
 	Yielded       int     `query:"yielded"        form:"yielded"        json:"yielded"        xml:"yielded"`
 	Limit         int     `query:"limit"          form:"limit"          json:"limit"          xml:"limit"`
@@ -84,7 +85,7 @@ type Response struct {
 	NextURI       *string `query:"next_uri"       form:"next_uri"       json:"next_uri"       xml:"next_uri"`
 	// CursorRange returns cursors for starting after and ending before.
 	// Format: [starting_after, ending_before].
-	CursorRange []string `query:"cursor_range"   form:"cursor_range"   json:"cursor_range"   xml:"cursor_range"`
+	CursorRange []int64 `query:"cursor_range"   form:"cursor_range"   json:"cursor_range"   xml:"cursor_range"`
 }
 
 // HasPrevPage returns true if prev page exists and can be traversed.
@@ -98,7 +99,7 @@ func (r *Response) HasNextPage() bool {
 }
 
 // PrevPageCursor returns cursor to be used as ending before value.
-func (r *Response) PrevPageCursor() *string {
+func (r *Response) PrevPageCursor() *int64 {
 	if len(r.CursorRange) < 1 {
 		return nil
 	}
@@ -106,7 +107,7 @@ func (r *Response) PrevPageCursor() *string {
 }
 
 // NextPageCursor returns cursor to be used as starting after value.
-func (r *Response) NextPageCursor() *string {
+func (r *Response) NextPageCursor() *int64 {
 	if len(r.CursorRange) < 2 {
 		return nil
 	}

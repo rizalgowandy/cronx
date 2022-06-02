@@ -37,6 +37,7 @@ func NewServer(manager *Manager, address string) (*http.Server, error) {
 	// Register routes.
 	e.GET("/", ctrl.HealthCheck)
 	e.GET("/jobs", ctrl.Jobs)
+	e.GET("/histories", ctrl.Histories)
 	e.GET("/api/jobs", ctrl.APIJobs)
 	e.GET("/api/histories", ctrl.APIHistories)
 
@@ -67,6 +68,7 @@ func NewSideCarServer(manager *Manager, address string) {
 	// Register routes.
 	e.GET("/", ctrl.HealthCheck)
 	e.GET("/jobs", ctrl.Jobs)
+	e.GET("/histories", ctrl.Histories)
 	e.GET("/api/jobs", ctrl.APIJobs)
 	e.GET("/api/histories", ctrl.APIHistories)
 
@@ -94,7 +96,7 @@ func (c *ServerController) HealthCheck(ctx echo.Context) error {
 
 // Jobs return job status as frontend template.
 func (c *ServerController) Jobs(ctx echo.Context) error {
-	index, err := page.GetStatusTemplate()
+	index, err := page.GetJobsPageTemplate()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -113,6 +115,34 @@ func (c *ServerController) APIJobs(ctx echo.Context) error {
 		http.StatusOK,
 		c.Manager.GetStatusData(ctx.QueryParam(QueryParamSort)),
 	)
+}
+
+// Histories return job history as frontend template.
+func (c *ServerController) Histories(ctx echo.Context) error {
+	index, err := page.GetHistoryTemplate()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	var req Request
+	err = ctx.Bind(&req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	req.url = *ctx.Request().URL
+
+	data, err := c.Manager.GetHistoryData(ctx.Request().Context(), &req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return index.Execute(ctx.Response().Writer, data)
 }
 
 // APIHistories returns run histories as json.

@@ -5,10 +5,10 @@ import (
 	"sync"
 )
 
-const statusTemplate = `
+const jobsTemplate = `
 <!--
 	This page is only being used for development to restructure the code,
-	the real html page is on status.go.
+	the real html page is on jobs.go.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -37,11 +37,8 @@ const statusTemplate = `
 	   crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/canvas2image@1.0.5/canvas2image.min.js"></script>
 	<script type='text/javascript'>
-		const sort_query = {{ .Sort.Query }};
-		const sort_columns = {{ .Sort.Columns }};
-
 		function screenshot() {
-			html2canvas(document.querySelector('#table_status')).then(function(canvas) {
+			html2canvas(document.querySelector('#data_table')).then(function(canvas) {
 				Canvas2Image.saveAsPNG(canvas, canvas.width, canvas.height);
 			});
 		}
@@ -63,7 +60,11 @@ const statusTemplate = `
 		</div>
 		<a class="item active" href="javascript:window.location.reload()">
 			<i class="tasks icon"></i>
-			Status
+			Jobs
+		</a>
+		<a class="item" href="/histories">
+			<i class="history icon"></i>
+			Histories
 		</a>
 		<div class="item" onclick="screenshot()">
 			<button class="fluid ui labeled inverted green icon button">
@@ -109,7 +110,7 @@ const statusTemplate = `
 			</div>
 		</div>
 	</div>
-	<div id="table_status">
+	<div id="data_table">
 		<table class="ui sortable selectable center aligned celled table">
 			<thead>
 			<tr>
@@ -230,16 +231,16 @@ const statusTemplate = `
 `
 
 var (
-	statusPageOnce  sync.Once
-	statusPage      *template.Template
-	statusPageError error
+	jobsPageOnce  sync.Once
+	jobsPage      *template.Template
+	jobsPageError error
 )
 
-func GetStatusTemplate() (*template.Template, error) {
-	statusPageOnce.Do(func() {
-		t := template.New(statusTemplateName)
-		statusPage, statusPageError = t.Parse(statusTemplate)
+func GetJobsPageTemplate() (*template.Template, error) {
+	jobsPageOnce.Do(func() {
+		t := template.New(jobsTemplateName)
+		jobsPage, jobsPageError = t.Parse(jobsTemplate)
 	})
 
-	return statusPage, statusPageError
+	return jobsPage, jobsPageError
 }

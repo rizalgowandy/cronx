@@ -10,4 +10,5 @@ import (
 type HistoryPageData struct {
 	Data       []storage.History `json:"data"`
 	Pagination Response          `json:"pagination"`
+	Sort       Sort              `json:"sort"`
 }

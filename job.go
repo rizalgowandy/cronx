@@ -156,7 +156,7 @@ func (j *Job) Run() {
 
 func (j *Job) RecordHistory(ctx context.Context, start, finish time.Time) {
 	history := &storage.History{
-		ID:          logx.GetRequestID(ctx),
+		ID:          0,
 		CreatedAt:   time.Now(),
 		Name:        j.Name,
 		Status:      j.Status.String(),

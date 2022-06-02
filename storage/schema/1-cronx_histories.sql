@@ -1,5 +1,5 @@
 CREATE TABLE cronx_histories (
-	id           TEXT               NOT NULL
+	id           BIGSERIAL          NOT NULL
 		CONSTRAINT cronx_histories_id_pk
 			PRIMARY KEY,
 	created_at   TIMESTAMPTZ        NOT NULL,
