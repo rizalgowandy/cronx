@@ -77,8 +77,8 @@ func (e *ErrorDetail) Scan(value interface{}) error {
 }
 
 type HistoryFilter struct {
-	Sorts         []sortx.Sort `db:"sort"           json:"sort"`
-	Limit         int          `db:"limit"          json:"limit"`
-	StartingAfter *int64       `db:"starting_after" json:"starting_after"`
-	EndingBefore  *int64       `db:"ending_before"  json:"ending_before"`
+	Sorts         sortx.Sorts `db:"sort"           json:"sort"`
+	Limit         int         `db:"limit"          json:"limit"`
+	StartingAfter *int64      `db:"starting_after" json:"starting_after"`
+	EndingBefore  *int64      `db:"ending_before"  json:"ending_before"`
 }

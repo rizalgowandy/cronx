@@ -21,7 +21,7 @@ type Request struct {
 	// Sort of the resources in the response e.g. sort=id:desc,created_at:desc
 	// Sort is optional.
 	Sort string `query:"sort"           form:"sort"           json:"sort"           xml:"sort"`
-	// Limit number of results per call. Default 100.
+	// Limit number of results per call.
 	// Limit is optional.
 	Limit int `query:"limit"          form:"limit"          json:"limit"          xml:"limit"`
 	// StartingAfter is a cursor for use in pagination.
