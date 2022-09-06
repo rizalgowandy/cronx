@@ -51,3 +51,10 @@ func WithStorage(client storage.Client) Option {
 		m.storage = client
 	}
 }
+
+// WithAlerter determines the alerter used to send notification for high latency job run detected.
+func WithAlerter(client AlerterItf) Option {
+	return func(m *Manager) {
+		m.alerter = client
+	}
+}
