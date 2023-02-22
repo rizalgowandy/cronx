@@ -12,7 +12,7 @@ Cronx is a library to manage cron jobs, a cron manager library. It includes a li
 
 In order to install cronx package, you need to install Go and set your Go workspace first.
 
-You first need Go installed (version 1.14+ is required), then you can use the below Go command to install cronx.
+You first need Go installed (version >=1.15 is required), then you can use the below Go command to install cronx.
 
 ```shell
 go get -v github.com/rizalgowandy/cronx

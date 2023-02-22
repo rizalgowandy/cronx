@@ -4,6 +4,7 @@ import "context"
 
 // Func is a type to allow callers to wrap a raw func.
 // Example:
+//
 //	manager.Schedule("@every 5m", cronx.Func(myFunc))
 type Func func(ctx context.Context) error
 
@@ -21,6 +22,7 @@ func NewFuncJob(name string, cmd Func) *FuncJob {
 
 // FuncJob is a type to allow callers to wrap a raw func with name.
 // Example:
+//
 //	manager.ScheduleFunc("@every 5m", "random name", myFunc)
 type FuncJob struct {
 	name string
