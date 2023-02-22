@@ -70,7 +70,7 @@ type Manager struct {
 	// interceptor holds middleware that will be executed before current job operation.
 	interceptor Interceptor
 	// parser is a custom parser to support v1 that contains second as first parameter.
-	parser cron.Parser
+	parser cron.ScheduleParser
 	// location describes the timezone current cron is running.
 	// By default, the timezone will be the same timezone as the server.
 	location *time.Location
@@ -86,8 +86,9 @@ type Manager struct {
 
 // Schedule sets a job to run at specific time.
 // Example:
-//  @every 5m
-//  0 */10 * * * * => every 10m
+//
+//	@every 5m
+//	0 */10 * * * * => every 10m
 func (m *Manager) Schedule(spec string, job JobItf) error {
 	return m.schedule(spec, job, 1, 1)
 }
@@ -102,6 +103,7 @@ func (m *Manager) ScheduleFunc(spec, name string, cmd func(ctx context.Context) 
 // These symbols are reserved for cron specification.
 //
 // Example:
+//
 //	Spec		: "0 0 1 * * *#0 0 2 * * *#0 0 3 * * *
 //	Separator	: "#"
 //	This input schedules the job to run 3 times.
