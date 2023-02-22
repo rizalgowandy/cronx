@@ -42,8 +42,9 @@ func NewServer(manager *Manager, address string) (*http.Server, error) {
 	e.GET("/api/histories", ctrl.APIHistories)
 
 	return &http.Server{
-		Addr:    address,
-		Handler: e,
+		Addr:              address,
+		Handler:           e,
+		ReadHeaderTimeout: 60 * time.Second,
 	}, nil
 }
 
