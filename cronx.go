@@ -70,7 +70,7 @@ type Manager struct {
 	// interceptor holds middleware that will be executed before current job operation.
 	interceptor Interceptor
 	// parser is a custom parser to support v1 that contains second as first parameter.
-	parser cron.Parser
+	parser cron.ScheduleParser
 	// location describes the timezone current cron is running.
 	// By default, the timezone will be the same timezone as the server.
 	location *time.Location

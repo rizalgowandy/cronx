@@ -18,7 +18,7 @@ func WithLocation(loc *time.Location) Option {
 }
 
 // WithParser overrides the parser used for interpreting job schedules.
-func WithParser(p cron.Parser) Option {
+func WithParser(p cron.ScheduleParser) Option {
 	return func(m *Manager) {
 		m.parser = p
 	}

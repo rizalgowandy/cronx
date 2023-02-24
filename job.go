@@ -79,6 +79,8 @@ type Job struct {
 	Status  StatusCode `json:"status"`
 	Latency string     `json:"latency"`
 	Error   string     `json:"error"`
+	PrevRun time.Time `json:"-"`
+	NextRun time.Time `json:"-"`
 
 	manager *Manager
 	inner   JobItf
@@ -124,6 +126,8 @@ func (j *Job) Run() {
 	// Update job status as running.
 	atomic.StoreUint32(&j.status, statusRunning)
 	j.UpdateStatus()
+	j.NextRun = next
+	j.PrevRun = prev
 
 	// Run the job.
 	if err := j.manager.interceptor(ctx, j, func(ctx context.Context, job *Job) error {
