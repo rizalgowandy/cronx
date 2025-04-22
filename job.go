@@ -79,9 +79,9 @@ type Job struct {
 	Status  StatusCode `json:"status"`
 	Latency string     `json:"latency"`
 	Error   string     `json:"error"`
-	PrevRun time.Time  `json:"-"`
-	NextRun time.Time  `json:"-"`
-	
+	PrevRun time.Time  `json:"prev_run"`
+	NextRun time.Time  `json:"next_run"`
+
 	manager *Manager
 	inner   JobItf
 	status  uint32
