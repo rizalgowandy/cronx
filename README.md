@@ -31,16 +31,17 @@ import "github.com/rizalgowandy/cronx"
 
 Check the example [here](example/2-storage/main.go).
 
-Run docker:
+Install task:
 
 ```shell
-docker-compose up
+sudo snap install task --classic # linux
+brew install go-task/tap/go-task # mac
 ```
 
 Run the binary:
 
 ```shell
-make run | jq -R -r '. as $line | try fromjson catch $line'
+task run-storage
 ```
 
 Then, browse to:
