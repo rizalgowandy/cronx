@@ -6,13 +6,14 @@
 
 ![logo](https://socialify.git.ci/rizalgowandy/cronx/image?description=1&language=1&pattern=Floating%20Cogs&theme=Light)
 
-Cronx is a library to manage cron jobs, a cron manager library. It includes a live monitoring of current schedule and state of active jobs that can be outputted as JSON or HTML template.
+Cronx is a library to manage cron jobs, a cron manager library. It includes a live monitoring of current schedule and
+state of active jobs that can be outputted as JSON or HTML template.
 
 ## Installation
 
 In order to install cronx package, you need to install Go and set your Go workspace first.
 
-You first need Go installed (version >=1.15 is required), then you can use the below Go command to install cronx.
+You first need Go installed (version >=1.24 is required), then you can use the below Go command to install cronx.
 
 ```shell
 go get -v github.com/rizalgowandy/cronx
@@ -44,20 +45,20 @@ make run | jq -R -r '. as $line | try fromjson catch $line'
 
 Then, browse to:
 
-- http://localhost:9001 => see server health status.
-- http://localhost:9001/jobs => see the current job status as UI response.
-- http://localhost:9001/api/jobs => see the current job status as JSON response.
-- http://localhost:9001/api/histories => see previous job run histories as JSON response.
+- <http://localhost:9001> => see server health status.
+- <http://localhost:9001/jobs> => see the current job status as UI response.
+- <http://localhost:9001/api/jobs> => see the current job status as JSON response.
+- <http://localhost:9001/api/histories> => see previous job run histories as JSON response.
 
 ![cronx](docs/screenshot/7_jobs_page.png)
 
 ## Available Status
 
-* **Down** => Job fails to be registered.
-* **Up** => Job has just been created.
-* **Running** => Job is currently running.
-* **Success** => Job succeeds on the last run, waiting for next run.
-* **Error** => Job fails on the last run.
+- **Down** => Job fails to be registered.
+- **Up** => Job has just been created.
+- **Running** => Job is currently running.
+- **Success** => Job succeeds on the last run, waiting for next run.
+- **Error** => Job fails on the last run.
 
 ## Schedule Specification Format
 
@@ -88,14 +89,18 @@ Then, browse to:
 @every <duration>
 ```
 
-For example, "@every 1h30m10s" would indicate a schedule that activates after 1 hour, 30 minutes, 10 seconds, and then every interval after that.
+For example, "@every 1h30m10s" would indicate a schedule that activates after 1 hour, 30 minutes, 10 seconds, and then
+every interval after that.
 
 Please refer to this [link](https://pkg.go.dev/github.com/robfig/cron?readme=expanded#section-readme/) for more detail.
 
 ## Interceptor / Middleware
 
-Interceptor or commonly known as middleware is an operation that commonly executed before any of other operation. This library has the capability to add multiple middlewares that will be executed before or after the real job. It means you can log the running job, send telemetry, or protect the application from going
-down because of panic by adding middlewares. The idea of a middleware is to be declared once, and be executed on all registered jobs. Hence, reduce the code duplication on each job implementation.
+Interceptor or commonly known as middleware is an operation that commonly executed before any of other operation. This
+library has the capability to add multiple middlewares that will be executed before or after the real job. It means you
+can log the running job, send telemetry, or protect the application from going
+down because of panic by adding middlewares. The idea of a middleware is to be declared once, and be executed on all
+registered jobs. Hence, reduce the code duplication on each job implementation.
 
 ### Adding Interceptor / Middleware
 
@@ -177,8 +182,8 @@ func ScheduleFunc(spec, name string, cmd func(ctx context.Context) error) error
 // These symbols are reserved for cron specification.
 //
 // Example:
-//  Spec		: "0 0 1 * * *#0 0 2 * * *#0 0 3 * * *
-//  Separator	: "#"
+//  Spec  : "0 0 1 * * *#0 0 2 * * *#0 0 3 * * *
+//  Separator : "#"
 //  This input schedules the job to run 3 times.
 func Schedules(spec, separator string, job cronx.JobItf) error
 
@@ -256,7 +261,8 @@ func main() {
 
 ### Server is located in the US, but my user is in Jakarta, can I change the cron timezone?
 
-Yes, you can. By default, the cron timezone will follow the server location timezone using `time.Local`. If you placed the server in the US, it will use the US timezone. If you placed the server in the SG, it will use the SG timezone.
+Yes, you can. By default, the cron timezone will follow the server location timezone using `time.Local`. If you placed
+the server in the US, it will use the US timezone. If you placed the server in the SG, it will use the SG timezone.
 
 ```go
 package main

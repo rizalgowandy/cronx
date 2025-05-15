@@ -23,6 +23,7 @@ linters:
     - whitespace
     - wsl
     - depguard
+    - tagalign
   settings:
     dupl:
       threshold: 100
@@ -54,7 +55,7 @@ linters:
         path: _test\.go
       - linters:
           - lll
-        source: '^//go:generate '
+        source: "^//go:generate "
       - path: (.+)\.go$
         text: should have a package comment, unless it's in another file for this package
       - path: (.+)\.go$
@@ -62,7 +63,7 @@ linters:
       - path: (.+)\.go$
         text: the channel used with signal.Notify should be buffered
       - path: (.+)\.go$
-        text: 'G104:'
+        text: "G104:"
       - path: (.+)\.go$
         text: Error return value of `.*.Body.Close` is not checked
       - path: (.+)\.go$
@@ -72,7 +73,7 @@ linters:
       - path: (.+)\.go$
         text: Error return value of `viper.BindEnv` is not checked
       - path: (.+)\.go$
-        text: 'G108: Profiling endpoint is automatically exposed on /debug/pprof'
+        text: "G108: Profiling endpoint is automatically exposed on /debug/pprof"
       - path: (.+)\.go$
         text: exported var Err.* should have comment or be unexported
       - path: (.+)\.go$
@@ -80,9 +81,9 @@ linters:
       - path: (.+)\.go$
         text: Function 'main' has too many statements
       - path: (.+)\.go$
-        text: 'ST1000:'
+        text: "ST1000:"
       - path: (.+)\.go$
-        text: 'G204:'
+        text: "G204:"
     paths:
       - third_party$
       - builtin$
