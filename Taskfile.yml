@@ -1,0 +1,56 @@
+version: "3"
+
+vars:
+  HASH: { sh: git rev-parse --short HEAD }
+  BRANCH: { sh: git rev-parse --abbrev-ref HEAD }
+  BINARY_PATH: ./bin/main
+
+tasks:
+  tools:
+    env:
+      FILE: ".git/hooks/pre-commit"
+    cmds:
+      - go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+      - go install -v github.com/air-verse/air@latest
+      - go install -v github.com/golang/mock/mockgen@latest
+      - go install -v github.com/fatih/gomodifytags@latest
+      - go install -v github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+      - go install -v gotest.tools/gotestsum@latest
+      - go install -v github.com/segmentio/golines@latest
+      - cp .github/pre-commit.sh $FILE
+      - chmod +x $FILE
+      - test -f $FILE && echo "$FILE exists."
+
+  generate:
+    cmds:
+      - go generate ./...
+
+  analysis:
+    deps: [generate]
+    cmds:
+      - golangci-lint run --new-from-rev HEAD~ ./...
+
+  unit_tests:
+    deps: [generate]
+    cmds:
+      - gotestsum --format=testname --hide-summary=skipped -- -failfast -count=1 -v -race ./...
+
+  build:
+    deps: [generate]
+    cmds:
+      - go build -o bin/cronx && rm bin/cronx
+      - go build -o bin/simplest example/1-simplest/main.go && rm bin/simplest
+      - go build -o bin/storage example/2-storage/main.go && rm bin/storage
+
+  run-simplest:
+    deps: [build]
+    cmds:
+      - air -c ./scripts/.air-simplest.toml
+
+  run-storage:
+    deps: [build]
+    cmds:
+      - docker-compose down -v
+      - docker-compose up -d
+      - until docker exec postgres pg_isready -U unicorn_user -d magical_password; do echo "Waiting for database..."; sleep 2; done;
+      - air -c ./scripts/.air-storage.toml
