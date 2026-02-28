@@ -7,6 +7,20 @@
 #
 # This script does not handle file names that contain spaces.
 
+# Run linter.
+task analysis || exit 1
+
+# Build binaries to ensure program can be built
+task build || exit 1
+
+# Run test.
+task unit_tests || exit 1
+
+# Clean up unused dependency.
+go mod tidy
+git add go.mod
+git add go.sum
+
 # List all nonformatted files
 files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$')
 
@@ -21,20 +35,6 @@ if [ "$nonformatted" ]; then
   done
   printf "\n"
 fi
-
-# Run linter.
-make linter || exit 1
-
-# Build binaries to ensure program can be built
-make build || exit 1
-
-# Run test.
-make test || exit 1
-
-# Clean up unused dependency.
-go mod tidy
-git add go.mod
-git add go.sum
 
 echo ""
 echo -e "\e[32mCommitting...\e[0m"

@@ -1,156 +1,103 @@
-linters-settings:
-  depguard:
-    list-type: blacklist
-    packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-      - github.com/sirupsen/logrus
-    packages-with-error-message:
-      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
-  dupl:
-    threshold: 200
-  exhaustive:
-    default-signifies-exhaustive: false
-  funlen:
-    lines: 100
-    statements: 50
-  gci:
-    local-prefixes: github.com/golangci/golangci-lint
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-      - wrapperFunc
-  gocyclo:
-    min-complexity: 15
-  goimports:
-    local-prefixes: github.com/golangci/golangci-lint
-  golint:
-    min-confidence: 0
-  gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: argument,case,condition,return
-  govet:
-    check-shadowing: true
-    settings:
-      printf:
-        funcs:
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
-  lll:
-    line-length: 140
-  maligned:
-    suggest-new: true
-  misspell:
-    locale: US
-  nolintlint:
-    allow-leading-space: true # don't require machine-readable nolint directives (i.e. with no leading space)
-    allow-unused: false # report any unused nolint directives
-    require-explanation: false # don't require an explanation for nolint directives
-    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
-
+version: "2"
 linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: true
-  enable:
-    - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
-    - dupl
-    - errcheck
+  default: all
+  disable:
+    - cyclop
     - exhaustive
-    - gochecknoinits
-    - gocritic
-    - gocyclo
-    - gofmt
-    - goimports
-    - golint
-    - goprintffuncname
-    - gosec
-    - gosimple
-    - govet
-    - ineffassign
-    - interfacer
-    - lll
-    - misspell
-    - nakedret
+    - exhaustruct
+    - forbidigo
+    - godot
+    - godox
+    - ireturn
+    - mnd
+    - nilerr
+    - nlreturn
     - noctx
     - nolintlint
-    - rowserrcheck
-    - scopelint
-    - staticcheck
-    - structcheck
-    - stylecheck
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - varcheck
+    - nonamedreturns
+    - paralleltest
+    - revive
+    - tagliatelle
+    - thelper
+    - varnamelen
     - whitespace
-
-  # don't enable:
-  # - goconst
-  # - gomnd
-  # - asciicheck
-  # - gochecknoglobals
-  # - gocognit
-  # - godot
-  # - godox
-  # - goerr113
-  # - maligned
-  # - nestif
-  # - prealloc
-  # - testpackage
-  # - wsl
-  # - funlen
-
+    - wsl
+    - depguard
+    - tagalign
+  settings:
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 100
+      statements: 40
+    gocyclo:
+      min-complexity: 20
+    lll:
+      line-length: 140
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - bodyclose
+          - dupl
+          - err113
+          - errcheck
+          - funlen
+          - gochecknoglobals
+          - goconst
+          - gosec
+          - lll
+          - mnd
+          - testpackage
+          - unparam
+          - varnamelen
+          - wrapcheck
+        path: _test\.go
+      - linters:
+          - lll
+        source: "^//go:generate "
+      - path: (.+)\.go$
+        text: should have a package comment, unless it's in another file for this package
+      - path: (.+)\.go$
+        text: (struct field|var|func|method|func parameter|range var|const|type) .* should be .*
+      - path: (.+)\.go$
+        text: the channel used with signal.Notify should be buffered
+      - path: (.+)\.go$
+        text: "G104:"
+      - path: (.+)\.go$
+        text: Error return value of `.*.Body.Close` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*.Close()` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `rows.Close` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `viper.BindEnv` is not checked
+      - path: (.+)\.go$
+        text: "G108: Profiling endpoint is automatically exposed on /debug/pprof"
+      - path: (.+)\.go$
+        text: exported var Err.* should have comment or be unexported
+      - path: (.+)\.go$
+        text: put a space between `//` and comment text
+      - path: (.+)\.go$
+        text: Function 'main' has too many statements
+      - path: (.+)\.go$
+        text: "ST1000:"
+      - path: (.+)\.go$
+        text: "G204:"
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  # Excluding configuration per-path, per-linter, per-text and per-source
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gomnd
-        - scopelint
-        - dupl
-        - stylecheck
-        - lll
-    - path: api
-      linters:
-        - dupl
-    - path: example
-      linters:
-        - unparam
-
-    # https://github.com/go-critic/go-critic/issues/926
-    - linters:
-        - gocritic
-      text: "unnecessaryDefer:"
-
-run:
-  skip-dirs:
-    - mocks
-    - docs
-
-# golangci.com configuration
-# https://github.com/golangci/golangci/wiki/Configuration
-service:
-  golangci-lint-version: 1.30.0 # use the fixed version to not introduce new linters unexpectedly
-  prepare:
-    - echo "here I can run custom commands, but no preparation needed for this repo"
+  max-same-issues: 0
+  new-from-rev: HEAD~
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
