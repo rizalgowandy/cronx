@@ -1,13 +1,13 @@
 module github.com/rizalgowandy/cronx
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/go-redsync/redsync/v4 v4.16.0
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/labstack/echo/v4 v4.15.1
-	github.com/rizalgowandy/gdk v1.2.0
+	github.com/rizalgowandy/gdk v1.3.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
 )
