@@ -6,6 +6,11 @@ vars:
   BINARY_PATH: ./bin/main
 
 tasks:
+  setup:
+    desc: Install development tools and configure git hooks
+    cmds:
+      - task: tools
+
   tools:
     env:
       FILE: ".git/hooks/pre-commit"
